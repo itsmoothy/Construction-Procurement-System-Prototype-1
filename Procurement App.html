@@ -1,0 +1,2000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BuildCo Procurement — Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #0D1B2A;
+  --blue: #1A56DB;
+  --blue-light: #EBF5FF;
+  --blue-mid: #C3DAFE;
+  --teal: #0694A2;
+  --teal-light: #D5F5F6;
+  --green: #057A55;
+  --green-light: #DEF7EC;
+  --amber: #B45309;
+  --amber-light: #FEF3C7;
+  --red: #C81E1E;
+  --red-light: #FDE8E8;
+  --purple: #6C2BD9;
+  --purple-light: #EDEBFE;
+  --slate: #64748B;
+  --slate-light: #F1F5F9;
+  --border: #E2E8F0;
+  --white: #FFFFFF;
+  --text: #0F172A;
+  --text-muted: #64748B;
+  --sidebar-w: 248px;
+  --topbar-h: 56px;
+  --radius: 10px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+  --shadow-md: 0 4px 16px rgba(0,0,0,.10);
+  --shadow-lg: 0 16px 48px rgba(0,0,0,.16);
+  --font: 'Plus Jakarta Sans', sans-serif;
+  --font-display: 'Fraunces', Georgia, serif;
+  --transition: .18s cubic-bezier(.4,0,.2,1);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: var(--font); background: #F8FAFC; color: var(--text); }
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 99px; }
+button { font-family: var(--font); cursor: pointer; border: none; }
+input, select, textarea { font-family: var(--font); }
+a { text-decoration: none; color: inherit; }
+
+/* ─── LAYOUT ─────────────────────────────────────────────────────────────── */
+#app { display: flex; height: 100vh; overflow: hidden; }
+
+/* ─── SIDEBAR ────────────────────────────────────────────────────────────── */
+#sidebar {
+  width: var(--sidebar-w); flex-shrink: 0;
+  background: var(--navy);
+  display: flex; flex-direction: column;
+  transition: width var(--transition), transform var(--transition);
+  overflow: hidden; position: relative; z-index: 200;
+}
+#sidebar.collapsed { width: 60px; }
+.sidebar-logo {
+  padding: 18px 16px 14px;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  display: flex; align-items: center; gap: 10px; overflow: hidden;
+}
+.logo-icon {
+  width: 36px; height: 36px; border-radius: 9px;
+  background: linear-gradient(135deg, #1A56DB, #0694A2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+.logo-text { overflow: hidden; white-space: nowrap; }
+.logo-text .name { color: #F1F5F9; font-weight: 800; font-size: 14px; letter-spacing: -.02em; }
+.logo-text .sub { color: #475569; font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+nav { flex: 1; padding: 10px 8px; overflow-y: auto; }
+.nav-section { color: #475569; font-size: 9.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; padding: 10px 8px 4px; white-space: nowrap; overflow: hidden; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; border-radius: 8px; margin-bottom: 1px;
+  color: #94A3B8; font-size: 13px; font-weight: 500; cursor: pointer;
+  transition: all var(--transition); white-space: nowrap; overflow: hidden;
+  position: relative;
+}
+.nav-item:hover { background: rgba(255,255,255,.06); color: #E2E8F0; }
+.nav-item.active { background: var(--blue); color: #fff; }
+.nav-item .nav-icon { width: 16px; height: 16px; flex-shrink: 0; }
+.nav-item .badge {
+  margin-left: auto; background: var(--red); color: #fff;
+  font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 20px; flex-shrink: 0;
+}
+.sidebar-user {
+  padding: 12px 12px 14px; border-top: 1px solid rgba(255,255,255,.07);
+  display: flex; align-items: center; gap: 10px; overflow: hidden;
+}
+.user-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800; flex-shrink: 0; color: #fff;
+}
+.user-info { overflow: hidden; flex: 1; }
+.user-info .uname { color: #E2E8F0; font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-info .urole { font-size: 10px; font-weight: 700; text-transform: capitalize; white-space: nowrap; }
+
+/* ─── MAIN ───────────────────────────────────────────────────────────────── */
+#main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+#topbar {
+  height: var(--topbar-h); background: var(--white);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px; padding: 0 20px;
+  flex-shrink: 0; position: relative; z-index: 100;
+}
+.topbar-toggle {
+  background: var(--slate-light); border-radius: 7px; padding: 6px 7px;
+  display: flex; align-items: center; color: var(--slate); transition: all var(--transition);
+}
+.topbar-toggle:hover { background: var(--border); }
+.topbar-breadcrumb { flex: 1; font-size: 14px; font-weight: 600; color: var(--text); }
+.topbar-breadcrumb span { color: var(--slate); font-weight: 400; }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.role-chip {
+  padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+  text-transform: capitalize; cursor: pointer;
+}
+.topbar-date { font-size: 12px; color: var(--slate); }
+.notif-btn { background: var(--slate-light); border-radius: 7px; padding: 6px 7px; position: relative; color: var(--slate); }
+.notif-dot { width: 7px; height: 7px; background: var(--red); border-radius: 50%; position: absolute; top: 4px; right: 4px; border: 1.5px solid var(--white); }
+
+#content { flex: 1; overflow-y: auto; padding: 24px; }
+
+/* ─── PAGE ANIMATIONS ────────────────────────────────────────────────────── */
+.page { animation: fadeUp .22s ease; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+
+/* ─── CARDS ──────────────────────────────────────────────────────────────── */
+.card {
+  background: var(--white); border-radius: var(--radius);
+  border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+}
+.card-header {
+  padding: 16px 20px 12px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.card-title { font-size: 14px; font-weight: 700; color: var(--text); }
+.card-body { padding: 18px 20px; }
+
+/* ─── KPI CARDS ──────────────────────────────────────────────────────────── */
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 14px; margin-bottom: 22px; }
+.kpi-card {
+  background: var(--white); border-radius: var(--radius);
+  border: 1px solid var(--border); padding: 16px 18px;
+  box-shadow: var(--shadow-sm); cursor: pointer;
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+.kpi-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.kpi-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.kpi-label { font-size: 11px; font-weight: 700; color: var(--slate); text-transform: uppercase; letter-spacing: .05em; }
+.kpi-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+.kpi-value { font-size: 28px; font-weight: 800; color: var(--text); line-height: 1; margin-bottom: 4px; font-family: var(--font-display); }
+.kpi-sub { font-size: 11px; font-weight: 600; }
+
+/* ─── BUTTONS ────────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
+  transition: all var(--transition); cursor: pointer; border: none;
+  white-space: nowrap;
+}
+.btn-sm { padding: 5px 11px; font-size: 12px; gap: 5px; border-radius: 7px; }
+.btn-xs { padding: 3px 8px; font-size: 11px; gap: 4px; border-radius: 6px; }
+.btn-primary { background: var(--blue); color: #fff; }
+.btn-primary:hover { background: #1447C0; }
+.btn-success { background: var(--green); color: #fff; }
+.btn-success:hover { background: #046040; }
+.btn-ghost { background: transparent; color: var(--slate); }
+.btn-ghost:hover { background: var(--slate-light); }
+.btn-outline { background: transparent; color: var(--blue); border: 1.5px solid var(--blue); }
+.btn-outline:hover { background: var(--blue-light); }
+.btn-secondary { background: var(--slate-light); color: #334155; }
+.btn-secondary:hover { background: var(--border); }
+.btn-danger { background: var(--red); color: #fff; }
+
+/* ─── BADGES ─────────────────────────────────────────────────────────────── */
+.badge {
+  display: inline-flex; align-items: center;
+  padding: 3px 9px; border-radius: 20px; font-size: 10.5px; font-weight: 700; letter-spacing: .03em;
+}
+
+/* ─── TABLES ─────────────────────────────────────────────────────────────── */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th {
+  padding: 9px 14px; text-align: left; font-size: 10.5px; font-weight: 700;
+  color: var(--slate); text-transform: uppercase; letter-spacing: .05em;
+  background: #F8FAFC; border-bottom: 1px solid var(--border); white-space: nowrap;
+}
+tbody tr { border-bottom: 1px solid #F1F5F9; transition: background var(--transition); }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: #FAFBFD; }
+tbody td { padding: 12px 14px; vertical-align: middle; }
+.td-pr { font-weight: 700; color: var(--blue); }
+.td-muted { color: var(--slate); }
+.td-actions { display: flex; gap: 6px; }
+
+/* ─── FORMS ──────────────────────────────────────────────────────────────── */
+.field { margin-bottom: 14px; }
+.field-label { display: block; font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 5px; }
+.field-label .req { color: var(--red); margin-left: 2px; }
+.field-input, .field-select, .field-textarea {
+  width: 100%; padding: 8px 11px; border-radius: 8px; border: 1.5px solid var(--border);
+  font-size: 13px; color: var(--text); background: var(--white); outline: none;
+  font-family: var(--font); transition: border-color var(--transition);
+}
+.field-input:focus, .field-select:focus, .field-textarea:focus { border-color: var(--blue); }
+.field-textarea { resize: vertical; min-height: 68px; }
+
+/* ─── MODAL ──────────────────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.5);
+  z-index: 900; display: flex; align-items: center; justify-content: center; padding: 16px;
+  animation: fadeIn .15s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.modal {
+  background: var(--white); border-radius: 14px; width: 100%;
+  max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-lg);
+  animation: slideUp .18s ease;
+}
+@keyframes slideUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+.modal-sm { max-width: 480px; }
+.modal-md { max-width: 600px; }
+.modal-lg { max-width: 860px; }
+.modal-header { padding: 18px 22px 0; display: flex; align-items: center; justify-content: space-between; }
+.modal-title { font-size: 17px; font-weight: 700; color: var(--text); font-family: var(--font-display); }
+.modal-close { background: var(--slate-light); border-radius: 7px; padding: 5px 6px; color: var(--slate); }
+.modal-close:hover { background: var(--border); }
+.modal-body { padding: 18px 22px 22px; }
+
+/* ─── TABS ───────────────────────────────────────────────────────────────── */
+.tabs { display: flex; gap: 3px; background: var(--slate-light); padding: 3px; border-radius: 9px; width: fit-content; margin-bottom: 18px; flex-wrap: wrap; }
+.tab { padding: 5px 13px; border-radius: 7px; font-size: 12px; font-weight: 600; color: var(--slate); cursor: pointer; border: none; background: transparent; transition: all var(--transition); }
+.tab.active { background: var(--white); color: var(--text); box-shadow: var(--shadow-sm); }
+
+/* ─── GRIDS ──────────────────────────────────────────────────────────────── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+.grid-auto { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 14px; }
+
+/* ─── SECTION HEADER ─────────────────────────────────────────────────────── */
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+.page-title { font-size: 21px; font-weight: 800; color: var(--text); font-family: var(--font-display); }
+.page-sub { font-size: 13px; color: var(--slate); margin-top: 2px; }
+
+/* ─── PROGRESS BAR ───────────────────────────────────────────────────────── */
+.progress-track { background: var(--border); border-radius: 99px; height: 7px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 99px; transition: width .4s; }
+
+/* ─── ALERT ──────────────────────────────────────────────────────────────── */
+.alert { padding: 11px 14px; border-radius: 9px; font-size: 13px; display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+.alert-success { background: var(--green-light); color: #065F46; border: 1px solid #A7F3D0; }
+.alert-info { background: var(--blue-light); color: #1E3A5F; border: 1px solid var(--blue-mid); }
+.alert-warning { background: var(--amber-light); color: #92400E; border: 1px solid #FCD34D; }
+
+/* ─── LOGIN PAGE ─────────────────────────────────────────────────────────── */
+#login-screen {
+  position: fixed; inset: 0; z-index: 999;
+  background: linear-gradient(135deg, #0D1B2A 0%, #0D2449 60%, #0D1B2A 100%);
+  display: flex; align-items: center; justify-content: center; padding: 16px;
+}
+.login-card {
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1);
+  border-radius: 20px; width: 100%; max-width: 420px;
+  backdrop-filter: blur(16px); overflow: hidden;
+}
+.login-top {
+  padding: 36px 32px 28px; text-align: center;
+  background: linear-gradient(180deg, rgba(26,86,219,.2) 0%, transparent 100%);
+}
+.login-logo { width: 52px; height: 52px; background: linear-gradient(135deg, #1A56DB, #0694A2); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 26px; margin: 0 auto 16px; }
+.login-title { font-family: var(--font-display); font-size: 26px; color: #F1F5F9; margin-bottom: 4px; }
+.login-sub { font-size: 13px; color: #94A3B8; }
+.login-body { padding: 24px 32px 32px; }
+.login-body .field-label { color: #94A3B8; }
+.login-body .field-input, .login-body .field-select {
+  background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.12); color: #F1F5F9;
+}
+.login-body .field-input:focus, .login-body .field-select:focus { border-color: var(--blue); }
+.login-body .field-input::placeholder { color: #64748B; }
+.login-btn {
+  width: 100%; padding: 12px; background: var(--blue); color: #fff;
+  border-radius: 9px; font-size: 14px; font-weight: 700; cursor: pointer;
+  border: none; font-family: var(--font); transition: background var(--transition); margin-top: 6px;
+}
+.login-btn:hover { background: #1447C0; }
+.role-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
+.role-btn { padding: 10px 8px; border-radius: 8px; border: 1.5px solid rgba(255,255,255,.1); background: transparent; color: #94A3B8; font-size: 12px; font-weight: 600; cursor: pointer; transition: all var(--transition); text-align: center; }
+.role-btn:hover { border-color: var(--blue); color: #E2E8F0; background: rgba(26,86,219,.15); }
+.role-btn.selected { border-color: var(--blue); background: rgba(26,86,219,.25); color: #93C5FD; }
+.role-badge-preview { margin-top: 4px; font-size: 10px; opacity: .7; }
+
+/* ─── FLOW DIAGRAM ───────────────────────────────────────────────────────── */
+.flow-wrap { display: flex; align-items: flex-start; gap: 0; overflow-x: auto; padding: 20px 0; }
+.flow-step {
+  display: flex; flex-direction: column; align-items: center; flex-shrink: 0; min-width: 120px;
+}
+.flow-circle {
+  width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 20px; margin-bottom: 10px; border: 2px solid;
+}
+.flow-label { font-size: 11px; font-weight: 700; text-align: center; color: var(--slate); }
+.flow-arrow { padding-top: 20px; color: var(--border); font-size: 22px; flex-shrink: 0; }
+.flow-step.active .flow-circle { box-shadow: 0 0 0 4px rgba(26,86,219,.2); }
+
+/* ─── VENDOR FORM PAGE ───────────────────────────────────────────────────── */
+#vendor-portal {
+  position: fixed; inset: 0; z-index: 800; overflow-y: auto;
+  background: linear-gradient(160deg, #0D1B2A 0%, #0D3068 50%, #0D1B2A 100%);
+  display: none; padding: 40px 16px;
+}
+#vendor-portal.open { display: block; }
+.vp-card { max-width: 580px; margin: 0 auto; background: #fff; border-radius: 20px; overflow: hidden; box-shadow: var(--shadow-lg); }
+.vp-header { padding: 28px 30px; background: linear-gradient(135deg, #0D1B2A, #1A56DB); color: #fff; }
+.vp-tag { font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; opacity: .6; margin-bottom: 8px; }
+.vp-title { font-family: var(--font-display); font-size: 22px; margin-bottom: 4px; }
+.vp-meta { font-size: 12px; opacity: .75; }
+.vp-body { padding: 26px 30px; }
+.vp-section { font-size: 11px; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: .08em; margin: 18px 0 12px; padding-bottom: 8px; border-bottom: 2px solid #F1F5F9; }
+.vp-submit { width: 100%; padding: 13px; background: linear-gradient(135deg, #0D1B2A, #1A56DB); color: #fff; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; border: none; font-family: var(--font); margin-top: 10px; transition: opacity var(--transition); }
+.vp-submit:hover { opacity: .9; }
+.vp-success { text-align: center; padding: 48px 30px; }
+.vp-success-icon { width: 64px; height: 64px; background: var(--green-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 18px; font-size: 28px; }
+.vp-close-btn { position: fixed; top: 20px; right: 20px; background: rgba(255,255,255,.15); color: #fff; border-radius: 9px; padding: 8px 12px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; border: none; }
+
+/* ─── DEPLOYMENT GUIDE ───────────────────────────────────────────────────── */
+.deploy-option {
+  background: var(--white); border-radius: var(--radius); border: 1px solid var(--border);
+  padding: 18px 20px; transition: all var(--transition);
+}
+.deploy-option:hover { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,86,219,.08); }
+.deploy-badge { padding: 3px 9px; border-radius: 20px; font-size: 10px; font-weight: 700; }
+.code-block {
+  background: #0F172A; color: #7DD3FC; border-radius: 8px;
+  padding: 12px 14px; font-size: 12px; font-family: 'Courier New', monospace;
+  overflow-x: auto; margin: 8px 0; line-height: 1.7;
+}
+.code-block .cm { color: #475569; }
+.code-block .kw { color: #A78BFA; }
+.code-block .st { color: #86EFAC; }
+.code-block .fn { color: #7DD3FC; }
+
+/* ─── COMPARISON TABLE HIGHLIGHTS ───────────────────────────────────────── */
+.row-best-price { background: #FEFCE8 !important; }
+.row-fastest { background: #F0F9FF !important; }
+.recommend-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 700; }
+
+/* ─── SCHEMA CARDS ───────────────────────────────────────────────────────── */
+.schema-card { border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; cursor: pointer; }
+.schema-head { padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; }
+.schema-body { padding: 10px 0; display: none; }
+.schema-body.open { display: block; }
+.schema-row { display: grid; grid-template-columns: 1fr 1.3fr 1.1fr; gap: 8px; padding: 5px 14px; font-size: 11.5px; border-bottom: 1px solid #F8FAFC; }
+.schema-row:last-child { border-bottom: none; }
+.schema-field { font-weight: 700; color: var(--text); font-family: monospace; }
+.schema-type { color: var(--teal); font-weight: 600; }
+.schema-note { color: var(--slate); }
+.schema-rel { background: var(--blue-light); border-radius: 7px; margin: 6px 10px 2px; padding: 6px 10px; font-size: 11px; color: #1E3A5F; }
+
+/* ─── DELIVERY PROGRESS ──────────────────────────────────────────────────── */
+.delivery-card { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); padding: 18px 20px; margin-bottom: 14px; }
+
+/* ─── PRICE BENCHMARKING ──────────────────────────────────────────────────── */
+.bm-panel {
+  background: var(--navy); border-radius: var(--radius);
+  padding: 18px 22px; margin-bottom: 18px; color: #fff;
+  border: 1px solid rgba(255,255,255,.08);
+}
+.bm-panel-title {
+  font-size: 11px; font-weight: 800; letter-spacing: .1em;
+  text-transform: uppercase; color: #7DD3FC; margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.bm-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 14px; }
+.bm-stat { background: rgba(255,255,255,.06); border-radius: 8px; padding: 11px 14px; border: 1px solid rgba(255,255,255,.08); }
+.bm-stat-label { font-size: 10px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 4px; }
+.bm-stat-value { font-size: 20px; font-weight: 800; font-family: var(--font-display); color: #F1F5F9; line-height: 1; }
+.bm-stat-sub { font-size: 11px; color: #64748B; margin-top: 3px; }
+.bm-trend { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+.bm-trend-up   { background: rgba(239,68,68,.18);  color: #FCA5A5; }
+.bm-trend-flat { background: rgba(100,116,139,.2); color: #CBD5E1; }
+.bm-trend-down { background: rgba(16,185,129,.18); color: #6EE7B7; }
+.bm-spread-bar { background: rgba(255,255,255,.08); border-radius: 99px; height: 6px; margin-top: 10px; overflow: hidden; position: relative; }
+.bm-spread-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #34D399, #FBBF24, #F87171); }
+.mc-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; font-size: 10.5px; font-weight: 700; white-space: nowrap; }
+.mc-below   { background: #DEF7EC; color: #057A55; }
+.mc-within  { background: #F1F5F9; color: #475569; }
+.mc-above   { background: #FDE8E8; color: #C81E1E; }
+.mc-extreme { background: #7F1D1D; color: #FCA5A5; border: 1px solid #EF4444; }
+.row-above-market  { background: #FFF5F5 !important; }
+.row-below-market  { background: #F0FDF4 !important; }
+.row-extreme       { background: #FFF0F0 !important; outline: 1.5px solid #FCA5A5; outline-offset: -1px; }
+.bm-warning {
+  display: flex; align-items: flex-start; gap: 10px;
+  background: rgba(127,29,29,.85); border: 1px solid #EF4444; border-radius: 9px;
+  padding: 12px 14px; margin-bottom: 14px; color: #FCA5A5; font-size: 13px; line-height: 1.5;
+}
+.bm-warning strong { color: #FEE2E2; }
+.bm-warning-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.item-tab { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1.5px solid var(--border); background: var(--white); color: var(--slate); transition: all var(--transition); }
+.item-tab.active { border-color: var(--blue); background: var(--blue-light); color: var(--blue); }
+/* price hint shown below item description input */
+.price-hint {
+  display:none; align-items:center; gap:6px; margin-top:4px;
+  padding:5px 10px; border-radius:7px; font-size:11.5px; font-weight:600;
+  background:#EFF6FF; border:1px solid #BFDBFE; color:#1E40AF;
+  cursor:pointer; flex-wrap:wrap;
+}
+.price-hint.visible { display:flex; }
+.price-hint .ph-avg  { font-weight:800; color:#1A56DB; }
+.price-hint .ph-low  { color:#057A55; }
+.price-hint .ph-high { color:#C81E1E; }
+.price-hint .ph-use  { margin-left:auto; background:#1A56DB; color:#fff; border:none;
+  border-radius:5px; padding:2px 8px; font-size:10.5px; font-weight:700; cursor:pointer; }
+.price-hint .ph-trend-up   { color:#C81E1E; }
+.price-hint .ph-trend-down { color:#057A55; }
+.price-hint .ph-trend-flat { color:#64748B; }
+
+
+/* ─── MOBILE OVERLAY ─────────────────────────────────────────────────────── */
+#mobile-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 150; }
+
+/* ─── RESPONSIVE ─────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  :root { --sidebar-w: 240px; }
+  #sidebar { position: fixed; inset: 0 auto 0 0; transform: translateX(-100%); z-index: 200; width: var(--sidebar-w) !important; }
+  #sidebar.mobile-open { transform: translateX(0); }
+  #mobile-overlay.show { display: block; }
+  #content { padding: 16px; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  .page-header { flex-direction: column; align-items: flex-start; }
+  .flow-wrap { gap: 0; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ LOGIN SCREEN ════════════════════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-top">
+      <div class="login-logo">🏗️</div>
+      <div class="login-title">BuildCo Procurement</div>
+      <div class="login-sub">Construction Procurement Management System</div>
+    </div>
+    <div class="login-body">
+      <p style="font-size:12px;color:#64748B;margin-bottom:14px;font-weight:600;text-transform:uppercase;letter-spacing:.06em">Select demo role to continue</p>
+      <div class="role-btns" id="role-btns">
+        <button class="role-btn selected" data-role="procurement" onclick="selectRole(this)">
+          👔 Procurement<div class="role-badge-preview">Full access</div>
+        </button>
+        <button class="role-btn" data-role="requester" onclick="selectRole(this)">
+          📋 Requester<div class="role-badge-preview">Create PRs</div>
+        </button>
+        <button class="role-btn" data-role="warehouse" onclick="selectRole(this)">
+          📦 Warehouse<div class="role-badge-preview">Deliveries</div>
+        </button>
+        <button class="role-btn" data-role="admin" onclick="selectRole(this)">
+          ⚙️ Admin<div class="role-badge-preview">Full control</div>
+        </button>
+      </div>
+      <div class="field">
+        <label class="field-label">Email</label>
+        <input class="field-input" id="login-email" type="email" placeholder="you@buildco.com" value="maria@buildco.com">
+      </div>
+      <div class="field">
+        <label class="field-label">Password</label>
+        <input class="field-input" type="password" placeholder="••••••••" value="••••••••">
+      </div>
+      <button class="login-btn" onclick="doLogin()">Sign in to BuildCo →</button>
+      <p style="text-align:center;margin-top:14px;font-size:11px;color:#475569">🔒 This is a prototype. No data is saved or transmitted.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ VENDOR PORTAL (External) ════════════════════════════════════════════ -->
+<div id="vendor-portal">
+  <button class="vp-close-btn" onclick="closeVendorPortal()">✕ Close Preview</button>
+  <div class="vp-card" id="vp-card">
+    <div class="vp-header">
+      <div class="vp-tag">BuildCo Construction · Secure Vendor Portal</div>
+      <div class="vp-title">Request for Quotation</div>
+      <div class="vp-meta" id="vp-meta">Project: Pasig River Bridge · PR-003 · Required by: 2026-03-25</div>
+    </div>
+    <div class="vp-body">
+      <div class="alert alert-info" style="font-size:12px;">
+        🔒 This is a one-time secure link tied to your vendor account. It expires on the deadline date.
+      </div>
+      <div class="vp-section">Items Requested</div>
+      <div id="vp-items" style="font-size:13px;color:#334155;background:#F8FAFC;border-radius:8px;padding:12px 14px;margin-bottom:4px;">
+        <div>• Structural Steel H-beam 200×200 — 30 pcs</div>
+        <div>• High-tensile Bolts M24 — 2,000 pcs</div>
+      </div>
+      <div class="vp-section">A. Vendor Information</div>
+      <div class="grid-2">
+        <div class="field"><label class="field-label">Company Name <span class="req">*</span></label><input class="field-input" placeholder="e.g. SteelMark Corp." id="vp-company"></div>
+        <div class="field"><label class="field-label">Contact Person <span class="req">*</span></label><input class="field-input" placeholder="Full name" id="vp-contact"></div>
+        <div class="field"><label class="field-label">Email <span class="req">*</span></label><input class="field-input" type="email" placeholder="your@company.com" id="vp-email"></div>
+        <div class="field"><label class="field-label">Phone <span class="req">*</span></label><input class="field-input" placeholder="09XXXXXXXXX" id="vp-phone"></div>
+      </div>
+      <div class="vp-section">B. Pricing Details</div>
+      <div class="field"><label class="field-label">Item Name <span class="req">*</span></label>
+        <select class="field-select">
+          <option>Structural Steel H-beam 200×200 (30 pcs)</option>
+          <option>High-tensile Bolts M24 (2,000 pcs)</option>
+        </select>
+      </div>
+      <div class="grid-2">
+        <div class="field"><label class="field-label">Unit Price (₱) <span class="req">*</span></label><input class="field-input" type="number" placeholder="0.00" id="vp-price"></div>
+        <div class="field"><label class="field-label">Min Order Qty <span class="req">*</span></label><input class="field-input" type="number" placeholder="0" id="vp-moq"></div>
+        <div class="field"><label class="field-label">Lead Time (days) <span class="req">*</span></label><input class="field-input" type="number" placeholder="e.g. 7" id="vp-lead"></div>
+        <div class="field"><label class="field-label">Valid Until <span class="req">*</span></label><input class="field-input" type="date" id="vp-valid"></div>
+      </div>
+      <div class="field"><label class="field-label">Notes / Delivery Terms</label><textarea class="field-textarea" placeholder="Delivery terms, inclusions, alternatives…" id="vp-notes"></textarea></div>
+      <div class="field"><label class="field-label">Attach Quote Document</label><input class="field-input" type="file" accept=".pdf,.jpg,.png" style="padding:5px 10px;"></div>
+      <button class="vp-submit" onclick="submitVendorForm()">Submit Pricing →</button>
+      <p style="text-align:center;font-size:11px;color:#94A3B8;margin-top:10px;">🔒 Secure, encrypted submission</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MAIN APP ═════════════════════════════════════════════════════════════ -->
+<div id="app" style="display:none;">
+  <div id="mobile-overlay" onclick="closeSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">🏗️</div>
+      <div class="logo-text">
+        <div class="name">BuildCo</div>
+        <div class="sub">Procurement</div>
+      </div>
+    </div>
+    <nav>
+      <div class="nav-section">Overview</div>
+      <div class="nav-item active" data-page="dashboard" onclick="navigate(this)">
+        <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-section">Procurement</div>
+      <div class="nav-item" data-page="pr" onclick="navigate(this)">
+        <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
+        Purchase Requests <span class="badge" style="background:#EF4444;color:#fff;font-size:9px;padding:1px 5px;border-radius:20px;margin-left:auto;">2</span>
+      </div>
+      <div class="nav-item" data-page="rfq" onclick="navigate(this)">
+        <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.23h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6 6z"/></svg>
+        Vendor RFQ
+      </div>
+      <div class="nav-item" data-page="compare" onclick="navigate(this)">
+        <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Quote Comparison
+      </div>
+      <div class="nav-item" data-page="po" onclick="navigate(this)">
+        <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Purchase Orders
+      </div>
+      <div class="nav-item" data-page="delivery" onclick="navigate(this)">
+        <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        Delivery Tracking
+      </div>
+      <div class="nav-section">Admin</div>
+      <div class="nav-item" data-page="vendors" onclick="navigate(this)">
+        <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>
+        Vendors
+      </div>
+      <div class="nav-item" data-page="users" onclick="navigate(this)">
+        <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Users
+      </div>
+      <div class="nav-item" data-page="schema" onclick="navigate(this)">
+        <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        Database Schema
+      </div>
+      <div class="nav-item" data-page="benchmark" onclick="navigate(this)">
+        <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Price Benchmarking
+      </div>
+      <div class="nav-item" data-page="deploy" onclick="navigate(this)">
+        <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        Deployment Guide
+      </div>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="user-avatar" style="background:#1A56DB;">MS</div>
+      <div class="user-info">
+        <div class="uname" id="user-name">Maria Santos</div>
+        <div class="urole" id="user-role" style="color:#60A5FA;">Procurement</div>
+      </div>
+      <svg onclick="doLogout()" width="14" height="14" fill="none" stroke="#64748B" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;cursor:pointer;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="main">
+    <div id="topbar">
+      <button class="topbar-toggle" onclick="toggleSidebar()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="topbar-breadcrumb" id="breadcrumb">Dashboard</div>
+      <div class="topbar-right">
+        <div class="role-chip" id="role-chip" style="background:#DBEAFE;color:#1A56DB;" onclick="doLogout()">Procurement ↩</div>
+        <div class="topbar-date" id="topbar-date"></div>
+        <button class="notif-btn">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <div class="notif-dot"></div>
+        </button>
+      </div>
+    </div>
+    <div id="content"></div>
+  </div>
+</div>
+
+<!-- ═══ MODAL CONTAINER ══════════════════════════════════════════════════════ -->
+<div id="modal-root"></div>
+
+<script>
+// ─── STATE ────────────────────────────────────────────────────────────────────
+const STATE = {
+  role: 'procurement',
+  page: 'dashboard',
+  prItems: [],
+  prCounter: 6,
+  deliveryCounter: 2,
+};
+
+const ROLE_CONFIG = {
+  admin:       { name:'Carlos Tan',   avatar:'CT', color:'#7C3AED', bg:'#EDEBFE', chip:'#EDEBFE', chipTxt:'#6C2BD9' },
+  procurement: { name:'Maria Santos', avatar:'MS', color:'#1A56DB', bg:'#DBEAFE', chip:'#DBEAFE', chipTxt:'#1A56DB' },
+  requester:   { name:'James Reyes',  avatar:'JR', color:'#057A55', bg:'#DEF7EC', chip:'#DEF7EC', chipTxt:'#057A55' },
+  warehouse:   { name:'Ana Cruz',     avatar:'AC', color:'#B45309', bg:'#FEF3C7', chip:'#FEF3C7', chipTxt:'#B45309' },
+};
+
+const PRs = [
+  { id:'PR-001', project:'Makati Tower Block C',    dept:'Civil',        requester:'James Reyes',  date:'2026-02-28', required:'2026-03-15', status:'pending_review', items:['Deformed Steel Bar 16mm × 500 pcs','Portland Cement Type I × 200 bags'],       total:'₱163,000' },
+  { id:'PR-002', project:'BGC Residential Phase 2', dept:'MEP',          requester:'Rico Lim',     date:'2026-03-01', required:'2026-03-20', status:'rfq_sent',       items:['HDPE Pipe 6-inch × 80 lengths'],                                               total:'₱96,000' },
+  { id:'PR-003', project:'Pasig River Bridge',       dept:'Civil',        requester:'James Reyes',  date:'2026-03-02', required:'2026-03-25', status:'comparing',     items:['Structural Steel H-beam 200×200 × 30 pcs','High-tensile Bolts M24 × 2,000 pcs'], total:'₱510,000' },
+  { id:'PR-004', project:'Cavite Expressway Ext.',   dept:'Civil',        requester:'James Reyes',  date:'2026-03-03', required:'2026-03-30', status:'po_created',    items:['Gravel Crushed 3/4 inch × 150 cu.m'],                                           total:'₱87,000' },
+  { id:'PR-005', project:'Makati Tower Block C',    dept:'Architecture', requester:'Rico Lim',     date:'2026-03-04', required:'2026-04-01', status:'delivered',     items:['Plywood Marine 3/4 inch × 100 sheets'],                                         total:'₱75,000' },
+];
+
+const STATUS_LABELS = {
+  pending_review: ['Pending Review','#B45309','#FEF3C7'],
+  rfq_sent:       ['RFQ Sent','#1A56DB','#DBEAFE'],
+  comparing:      ['Comparing','#6C2BD9','#EDEBFE'],
+  po_created:     ['PO Created','#0694A2','#D5F5F6'],
+  delivered:      ['Delivered','#057A55','#DEF7EC'],
+};
+
+function badge(status) {
+  const [label,color,bg] = STATUS_LABELS[status] || [status,'#64748B','#F1F5F9'];
+  return `<span class="badge" style="color:${color};background:${bg};">${label}</span>`;
+}
+
+// ─── LOGIN / LOGOUT ───────────────────────────────────────────────────────────
+let selectedRole = 'procurement';
+function selectRole(el) {
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedRole = el.dataset.role;
+}
+function doLogin() {
+  STATE.role = selectedRole;
+  const cfg = ROLE_CONFIG[STATE.role];
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  document.getElementById('user-avatar').textContent = cfg.avatar;
+  document.getElementById('user-avatar').style.background = cfg.color;
+  document.getElementById('user-name').textContent = cfg.name;
+  document.getElementById('user-role').textContent = STATE.role.charAt(0).toUpperCase() + STATE.role.slice(1);
+  document.getElementById('user-role').style.color = cfg.color.replace(')',',0.9)').replace('rgb','rgba') || '#60A5FA';
+  document.getElementById('role-chip').textContent = cfg.name.split(' ')[0] + ' ↩';
+  document.getElementById('role-chip').style.background = cfg.chip;
+  document.getElementById('role-chip').style.color = cfg.chipTxt;
+  document.getElementById('topbar-date').textContent = new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+  navigate(document.querySelector('[data-page="dashboard"]'));
+}
+function doLogout() {
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+// ─── ROUTING ──────────────────────────────────────────────────────────────────
+function navigate(el) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (el) el.classList.add('active');
+  const page = el ? el.dataset.page : STATE.page;
+  STATE.page = page;
+  const titles = {
+    dashboard:'Dashboard', pr:'Purchase Requests', rfq:'Vendor RFQ',
+    compare:'Quote Comparison', po:'Purchase Orders', delivery:'Delivery Tracking',
+    vendors:'Vendor Database', users:'User Management', schema:'Database Schema',
+    benchmark:'Price Benchmarking', deploy:'Deployment Guide'
+  };
+  document.getElementById('breadcrumb').textContent = titles[page] || page;
+  const pages = { dashboard: renderDashboard, pr: renderPR, rfq: renderRFQ, compare: renderCompare, po: renderPO, delivery: renderDelivery, vendors: renderVendors, users: renderUsers, schema: renderSchema, benchmark: renderBenchmarkPage, deploy: renderDeploy };
+  if (pages[page]) document.getElementById('content').innerHTML = `<div class="page">${pages[page]()}</div>`;
+  if (window.innerWidth < 768) closeSidebar();
+}
+
+// ─── SIDEBAR TOGGLE ───────────────────────────────────────────────────────────
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  if (window.innerWidth < 768) {
+    sb.classList.toggle('mobile-open');
+    document.getElementById('mobile-overlay').classList.toggle('show');
+  } else {
+    sb.classList.toggle('collapsed');
+  }
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('mobile-open');
+  document.getElementById('mobile-overlay').classList.remove('show');
+}
+
+// ─── MODAL ────────────────────────────────────────────────────────────────────
+function showModal(title, bodyHTML, size='modal-md') {
+  document.getElementById('modal-root').innerHTML = `
+    <div class="modal-overlay" onclick="closeModal(event,this)">
+      <div class="modal ${size}">
+        <div class="modal-header">
+          <div class="modal-title">${title}</div>
+          <button class="modal-close" onclick="closeModal()">✕</button>
+        </div>
+        <div class="modal-body">${bodyHTML}</div>
+      </div>
+    </div>`;
+}
+function closeModal(e, overlay) {
+  if (e && e.target !== overlay) return;
+  document.getElementById('modal-root').innerHTML = '';
+}
+
+// ─── DASHBOARD ────────────────────────────────────────────────────────────────
+function renderDashboard() {
+  const allPRs = [...PRs, ...STATE.prItems];
+  const pending = allPRs.filter(p=>p.status==='pending_review').length;
+  const comparing = allPRs.filter(p=>p.status==='comparing').length;
+  const delivered = allPRs.filter(p=>p.status==='delivered').length;
+  const recent = allPRs.slice(0,5);
+  return `
+  <div class="page-header">
+    <div>
+      <div class="page-title">Good morning, ${ROLE_CONFIG[STATE.role].name.split(' ')[0]} 👋</div>
+      <div class="page-sub">Here's what's happening in procurement today.</div>
+    </div>
+    <button class="btn btn-primary" onclick="openNewPR()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      New PR
+    </button>
+  </div>
+  <div class="kpi-grid">
+    ${kpiCard('Total PRs', allPRs.length, '#1A56DB', '#DBEAFE', '📋', '+' + STATE.prItems.length + ' new', 'pr')}
+    ${kpiCard('Pending Review', pending, '#B45309', '#FEF3C7', '⏳', 'Needs action', 'pr')}
+    ${kpiCard('Quotes Received', 5, '#6C2BD9', '#EDEBFE', '📊', '3 vendors', 'compare')}
+    ${kpiCard('Awaiting PO', comparing, '#0694A2', '#D5F5F6', '📄', 'Ready to order', 'compare')}
+    ${kpiCard('Delivered', delivered, '#057A55', '#DEF7EC', '✅', 'This month', 'delivery')}
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 300px;gap:18px;">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Recent Purchase Requests</div>
+        <button class="btn btn-ghost btn-sm" onclick="navigate(document.querySelector('[data-page=pr]'))">View all →</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>PR #</th><th>Project</th><th>Requester</th><th>Required</th><th>Status</th></tr></thead>
+          <tbody>
+            ${recent.map(pr=>`<tr>
+              <td class="td-pr">${pr.id}</td>
+              <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${pr.project}</td>
+              <td class="td-muted">${pr.requester}</td>
+              <td class="td-muted">${pr.required}</td>
+              <td>${badge(pr.status)}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card" style="padding:18px 20px;">
+      <div style="font-size:14px;font-weight:700;margin-bottom:14px;">Recent Activity</div>
+      ${activityFeed()}
+    </div>
+  </div>`;
+}
+
+function kpiCard(label, value, color, bg, icon, sub, page) {
+  return `<div class="kpi-card" onclick="navigate(document.querySelector('[data-page=${page}]'))">
+    <div class="kpi-top">
+      <div class="kpi-label">${label}</div>
+      <div class="kpi-icon" style="background:${bg};">${icon}</div>
+    </div>
+    <div class="kpi-value">${value}</div>
+    <div class="kpi-sub" style="color:${color};">${sub}</div>
+  </div>`;
+}
+
+function activityFeed() {
+  const items = [
+    ['✅','#DEF7EC','PO-001 partial delivery confirmed','2h ago'],
+    ['📧','#DBEAFE','RFQ sent to 3 vendors for PR-003','4h ago'],
+    ['📋','#EDEBFE','New PR-005 submitted by Rico Lim','6h ago'],
+    ['📊','#FEF3C7','5 quotes received for PR-003','1d ago'],
+    ['🧾','#DBEAFE','PO-001 created for PR-004','2d ago'],
+  ];
+  return items.map(([icon,bg,text,time])=>`
+    <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:12px;">
+      <div style="width:30px;height:30px;background:${bg};border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;">${icon}</div>
+      <div>
+        <div style="font-size:12px;color:var(--text);margin-bottom:1px;">${text}</div>
+        <div style="font-size:11px;color:#94A3B8;">${time}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ─── PURCHASE REQUESTS ────────────────────────────────────────────────────────
+let prFilter = 'all';
+function renderPR() {
+  const allPRs = [...PRs, ...STATE.prItems];
+  const filtered = prFilter === 'all' ? allPRs : allPRs.filter(p=>p.status===prFilter);
+  return `
+  <div class="page-header">
+    <div>
+      <div class="page-title">Purchase Requests</div>
+      <div class="page-sub">${allPRs.length} total requests</div>
+    </div>
+    <button class="btn btn-primary" onclick="openNewPR()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      New PR
+    </button>
+  </div>
+  <div class="tabs" id="pr-tabs">
+    ${['all','pending_review','rfq_sent','comparing','po_created','delivered'].map(t=>`
+      <button class="tab${prFilter===t?' active':''}" onclick="setPRFilter('${t}')">${
+        {all:'All',pending_review:'Pending',rfq_sent:'RFQ Sent',comparing:'Comparing',po_created:'PO Created',delivered:'Delivered'}[t]
+      }</button>`).join('')}
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>PR #</th><th>Project</th><th>Dept</th><th>Requester</th><th>Items</th><th>Required Date</th><th>Est. Total</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+          ${filtered.map(pr=>`<tr>
+            <td class="td-pr">${pr.id}</td>
+            <td style="max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${pr.project}</td>
+            <td class="td-muted">${pr.dept}</td>
+            <td class="td-muted">${pr.requester}</td>
+            <td class="td-muted">${pr.items.length} item${pr.items.length>1?'s':''}</td>
+            <td class="td-muted">${pr.required}</td>
+            <td style="font-weight:600;">${pr.total||'—'}</td>
+            <td>${badge(pr.status)}</td>
+            <td><div class="td-actions">
+              <button class="btn btn-ghost btn-xs" onclick="viewPR('${pr.id}')">👁 View</button>
+              ${pr.status==='pending_review'?`<button class="btn btn-outline btn-xs" onclick="sendRFQFromPR('${pr.id}')">📧 RFQ</button>`:''}
+            </div></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function setPRFilter(f) { prFilter = f; navigate(document.querySelector('[data-page=pr]')); }
+
+function viewPR(id) {
+  const pr = [...PRs,...STATE.prItems].find(p=>p.id===id);
+  if (!pr) return;
+  showModal(`${pr.id} — ${pr.project}`, `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+      ${[['Department',pr.dept],['Requester',pr.requester],['Date Submitted',pr.date],['Required Date',pr.required]].map(([l,v])=>`
+        <div style="background:#F8FAFC;border-radius:8px;padding:10px 12px;">
+          <div style="font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;">${l}</div>
+          <div style="font-size:13px;font-weight:600;">${v}</div>
+        </div>`).join('')}
+    </div>
+    <div style="font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Items</div>
+    ${pr.items.map(it=>`<div style="background:#F8FAFC;border-radius:7px;padding:8px 12px;margin-bottom:6px;font-size:13px;color:#334155;">• ${it}</div>`).join('')}
+    <div style="margin-top:14px;padding-top:14px;border-top:1px solid #F1F5F9;display:flex;gap:8px;align-items:center;">
+      Status: ${badge(pr.status)}
+      <span style="margin-left:auto;font-weight:700;font-size:15px;">${pr.total||''}</span>
+    </div>
+  `, 'modal-md');
+}
+
+function sendRFQFromPR(id) {
+  closeModal();
+  navigate(document.querySelector('[data-page=rfq]'));
+}
+
+function openNewPR() {
+  showModal('New Purchase Request', `
+    <div class="grid-2">
+      <div class="field"><label class="field-label">Project Name <span class="req">*</span></label>
+        <select class="field-select" id="new-project">
+          <option value="">Select project...</option>
+          <option>Makati Tower Block C</option><option>Pasig River Bridge</option>
+          <option>BGC Residential Phase 2</option><option>Cavite Expressway Ext.</option>
+        </select>
+      </div>
+      <div class="field"><label class="field-label">Department <span class="req">*</span></label>
+        <select class="field-select" id="new-dept">
+          <option value="">Select...</option><option>Civil</option><option>MEP</option><option>Architecture</option><option>Structural</option>
+        </select>
+      </div>
+      <div class="field" style="grid-column:1/-1"><label class="field-label">Required Date <span class="req">*</span></label>
+        <input class="field-input" type="date" id="new-date">
+      </div>
+    </div>
+    <div style="border-top:1px solid #F1F5F9;padding-top:14px;margin-top:4px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <label class="field-label" style="margin:0;">Items Requested</label>
+        <button class="btn btn-outline btn-sm" onclick="addItemRow()">+ Add Item</button>
+      </div>
+      <div id="item-rows">
+        <div class="item-row" style="margin-bottom:10px;">
+          <div style="display:grid;grid-template-columns:2fr 1fr 80px 1fr;gap:8px;">
+            <input class="field-input pr-item-desc" placeholder="Item description" style="font-size:12px;" oninput="onItemDescInput(this)">
+            <input class="field-input" type="number" placeholder="Qty" style="font-size:12px;">
+            <select class="field-select" style="font-size:12px;"><option>pcs</option><option>bags</option><option>kg</option><option>m</option><option>cu.m</option><option>lengths</option><option>sets</option></select>
+            <input class="field-input pr-cost-input" type="number" placeholder="Est. Cost ₱" style="font-size:12px;">
+          </div>
+          <div class="price-hint" id="ph-0">
+            <span>💡 Market avg: <span class="ph-avg"></span></span>
+            <span class="ph-low"></span>
+            <span class="ph-high"></span>
+            <span class="ph-trend"></span>
+            <button class="ph-use" onclick="useSuggestedPrice(this)">Use avg →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;border-top:1px solid #F1F5F9;padding-top:14px;">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitNewPR()">Submit PR →</button>
+    </div>
+  `, 'modal-lg');
+}
+
+function addItemRow() {
+  const idx = document.querySelectorAll('.item-row').length;
+  document.getElementById('item-rows').insertAdjacentHTML('beforeend', `
+    <div class="item-row" style="margin-bottom:10px;">
+      <div style="display:grid;grid-template-columns:2fr 1fr 80px 1fr;gap:8px;">
+        <input class="field-input pr-item-desc" placeholder="Item description" style="font-size:12px;" oninput="onItemDescInput(this)">
+        <input class="field-input" type="number" placeholder="Qty" style="font-size:12px;">
+        <select class="field-select" style="font-size:12px;"><option>pcs</option><option>bags</option><option>kg</option><option>m</option><option>cu.m</option><option>lengths</option><option>sets</option></select>
+        <input class="field-input pr-cost-input" type="number" placeholder="Est. Cost ₱" style="font-size:12px;">
+      </div>
+      <div class="price-hint" id="ph-${idx}">
+        <span>💡 Market avg: <span class="ph-avg"></span></span>
+        <span class="ph-low"></span>
+        <span class="ph-high"></span>
+        <span class="ph-trend"></span>
+        <button class="ph-use" onclick="useSuggestedPrice(this)">Use avg →</button>
+      </div>
+    </div>`);
+}
+
+// Live price-hint logic — fires on every keystroke in item description
+let _hintTimer = null;
+function onItemDescInput(inputEl) {
+  clearTimeout(_hintTimer);
+  _hintTimer = setTimeout(() => {
+    const row   = inputEl.closest('.item-row');
+    const hint  = row.querySelector('.price-hint');
+    if (!hint) return;
+    const typed = inputEl.value.trim().toLowerCase();
+    if (typed.length < 3) { hint.classList.remove('visible'); return; }
+
+    // Fuzzy match against history keys
+    const db    = loadPriceHistory();
+    const keys  = Object.keys(db);
+    const match = keys.find(k => k.toLowerCase().includes(typed))
+                 || keys.find(k => typed.split(' ').some(w => k.toLowerCase().includes(w)));
+
+    if (!match) { hint.classList.remove('visible'); return; }
+
+    const entries = db[match];
+    const prices  = entries.map(e => e.price);
+    const avg     = Math.round(prices.reduce((a,b)=>a+b,0) / prices.length);
+    const low     = Math.min(...prices);
+    const high    = Math.max(...prices);
+
+    // Trend
+    let trendHTML = '';
+    if (prices.length >= 3) {
+      const h1 = prices.slice(0, Math.ceil(prices.length/2));
+      const h2 = prices.slice(Math.floor(prices.length/2));
+      const a1 = h1.reduce((a,b)=>a+b,0)/h1.length;
+      const a2 = h2.reduce((a,b)=>a+b,0)/h2.length;
+      const chg = (a2-a1)/a1*100;
+      if      (chg >  3) trendHTML = '<span class="ph-trend-up">📈 Rising</span>';
+      else if (chg < -3) trendHTML = '<span class="ph-trend-down">📉 Falling</span>';
+      else               trendHTML = '<span class="ph-trend-flat">➡ Stable</span>';
+    }
+
+    hint.querySelector('.ph-avg').textContent  = '₱' + avg.toLocaleString() + ' (' + match + ')';
+    hint.querySelector('.ph-low').textContent  = '⬇ Low ₱' + low.toLocaleString();
+    hint.querySelector('.ph-high').textContent = '⬆ High ₱' + high.toLocaleString();
+    hint.querySelector('.ph-trend').innerHTML  = trendHTML;
+    hint.dataset.avg = avg;
+    hint.classList.add('visible');
+  }, 280); // debounce 280ms
+}
+
+function useSuggestedPrice(btn) {
+  const hint    = btn.closest('.price-hint');
+  const row     = hint.closest('.item-row');
+  const costEl  = row.querySelector('.pr-cost-input');
+  if (costEl && hint.dataset.avg) {
+    costEl.value = hint.dataset.avg;
+    // brief flash to confirm
+    costEl.style.borderColor = '#1A56DB';
+    costEl.style.background  = '#EFF6FF';
+    setTimeout(() => { costEl.style.borderColor = ''; costEl.style.background = ''; }, 1200);
+  }
+}
+
+function submitNewPR() {
+  const project = document.getElementById('new-project').value;
+  const dept = document.getElementById('new-dept').value;
+  const date = document.getElementById('new-date').value;
+  if (!project || !dept || !date) { alert('Please fill in all required fields.'); return; }
+  const rows = document.querySelectorAll('.item-row');
+  const items = [];
+  rows.forEach(r => {
+    const inputs = r.querySelectorAll('input, select');
+    if (inputs[0].value) items.push(`${inputs[0].value} × ${inputs[1].value || '?'} ${inputs[2].value}`);
+  });
+  STATE.prCounter++;
+  const id = `PR-00${STATE.prCounter}`;
+  STATE.prItems.push({ id, project, dept, requester: ROLE_CONFIG[STATE.role].name, date: new Date().toISOString().slice(0,10), required: date, status: 'pending_review', items: items.length ? items : ['(No items specified)'], total: '—' });
+  closeModal();
+  navigate(document.querySelector('[data-page=pr]'));
+}
+
+// ─── RFQ ─────────────────────────────────────────────────────────────────────
+let rfqSelectedPR = null, rfqSelectedVendors = [];
+function renderRFQ() {
+  const allPRs = [...PRs,...STATE.prItems].filter(p=>p.status==='pending_review'||p.status==='rfq_sent');
+  const vendors = [
+    {id:1,name:'SteelMark Corp.',contact:'Ben Uy',email:'ben@steelmark.com',cat:'Steel & Metal'},
+    {id:2,name:'ConcreteMax Inc.',contact:'Lea Torres',email:'lea@concretemax.com',cat:'Concrete'},
+    {id:3,name:'FastBuild Supply',contact:'Tony Chu',email:'tony@fastbuild.com',cat:'General Hardware'},
+    {id:4,name:'HardCo Materials',contact:'Gina Ramos',email:'gina@hardco.com',cat:'Aggregates'},
+  ];
+  return `
+  <div class="page-header"><div>
+    <div class="page-title">Vendor RFQ</div>
+    <div class="page-sub">Send Request for Quotation to vendors</div>
+  </div></div>
+  <div class="alert alert-info">📋 Select a Purchase Request, choose vendors, preview the email, then send. Each vendor receives a unique secure submission link.</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+    <div class="card" style="padding:18px 20px;">
+      <div style="font-size:13px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+        <span style="width:22px;height:22px;background:var(--blue);color:#fff;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;">1</span>
+        Select Purchase Request
+      </div>
+      ${allPRs.map(pr=>`
+        <div onclick="selectRFQPR('${pr.id}')" id="rfq-pr-${pr.id}" style="padding:11px 13px;border-radius:9px;cursor:pointer;border:2px solid ${rfqSelectedPR===pr.id?'var(--blue)':'var(--border)'};background:${rfqSelectedPR===pr.id?'#EBF5FF':'var(--white)'};margin-bottom:8px;transition:all .15s;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-weight:700;color:var(--blue);font-size:13px;">${pr.id}</span>
+            ${badge(pr.status)}
+          </div>
+          <div style="font-size:13px;">${pr.project}</div>
+          <div style="font-size:11px;color:var(--slate);margin-top:2px;">${pr.items.length} items · Due: ${pr.required}</div>
+        </div>`).join('')}
+    </div>
+    <div class="card" style="padding:18px 20px;">
+      <div style="font-size:13px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+        <span style="width:22px;height:22px;background:var(--blue);color:#fff;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;">2</span>
+        Choose Vendors
+      </div>
+      ${vendors.map(v=>`
+        <div onclick="toggleRFQVendor(${v.id})" id="rfq-v-${v.id}" style="padding:11px 13px;border-radius:9px;cursor:pointer;border:2px solid ${rfqSelectedVendors.includes(v.id)?'var(--green)':'var(--border)'};background:${rfqSelectedVendors.includes(v.id)?'#F0FDF4':'var(--white)'};margin-bottom:8px;transition:all .15s;display:flex;align-items:center;gap:10px;">
+          <div style="width:20px;height:20px;border-radius:5px;border:2px solid ${rfqSelectedVendors.includes(v.id)?'var(--green)':'#CBD5E1'};background:${rfqSelectedVendors.includes(v.id)?'var(--green)':'transparent'};display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;font-size:11px;">${rfqSelectedVendors.includes(v.id)?'✓':''}</div>
+          <div>
+            <div style="font-size:13px;font-weight:600;">${v.name}</div>
+            <div style="font-size:11px;color:var(--slate);">${v.contact} · ${v.cat}</div>
+          </div>
+        </div>`).join('')}
+    </div>
+  </div>
+  ${rfqSelectedPR && rfqSelectedVendors.length > 0 ? renderRFQPreview() : `<div style="text-align:center;padding:30px;color:var(--slate);font-size:13px;background:var(--white);border-radius:var(--radius);border:1px dashed var(--border);">Select a PR and at least one vendor to preview the RFQ email</div>`}`;
+}
+
+function selectRFQPR(id) { rfqSelectedPR = id; navigate(document.querySelector('[data-page=rfq]')); }
+function toggleRFQVendor(id) { rfqSelectedVendors = rfqSelectedVendors.includes(id) ? rfqSelectedVendors.filter(x=>x!==id) : [...rfqSelectedVendors,id]; navigate(document.querySelector('[data-page=rfq]')); }
+function renderRFQPreview() {
+  const pr = [...PRs,...STATE.prItems].find(p=>p.id===rfqSelectedPR);
+  const vNames = [{id:1,email:'ben@steelmark.com'},{id:2,email:'lea@concretemax.com'},{id:3,email:'tony@fastbuild.com'},{id:4,email:'gina@hardco.com'}].filter(v=>rfqSelectedVendors.includes(v.id)).map(v=>v.email);
+  return `<div class="card" style="padding:18px 20px;">
+    <div style="font-size:13px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+      <span style="width:22px;height:22px;background:var(--blue);color:#fff;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;">3</span>
+      Preview & Send
+    </div>
+    <div style="background:#F8FAFC;border-radius:9px;padding:14px 16px;font-size:13px;color:#334155;border:1px solid var(--border);margin-bottom:14px;">
+      <div style="margin-bottom:6px;"><strong>TO:</strong> ${vNames.join(', ')}</div>
+      <div style="margin-bottom:10px;"><strong>SUBJECT:</strong> Request for Quotation — ${pr.project} [${pr.id}]</div>
+      <div style="border-top:1px solid var(--border);padding-top:10px;line-height:1.7;">
+        Dear Vendor,<br>We are requesting pricing for materials on <strong>${pr.project}</strong>. Required by <strong>${pr.required}</strong>.<br><br>
+        <strong>Items:</strong><br>${pr.items.map(i=>`&nbsp;&nbsp;• ${i}`).join('<br>')}
+        <br><br>Please use your secure link to submit pricing. Link expires on ${pr.required}.<br><br>
+        <span style="background:var(--blue);color:#fff;padding:7px 16px;border-radius:7px;font-size:12px;font-weight:700;">[ SUBMIT QUOTE → secure-token-link ]</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <button class="btn btn-primary" onclick="sendRFQ()">📧 Send RFQ to ${rfqSelectedVendors.length} vendor${rfqSelectedVendors.length>1?'s':''}</button>
+      <button class="btn btn-secondary" onclick="openVendorPortal()">👁 Preview Vendor Form</button>
+      <span style="font-size:12px;color:var(--slate);">Each vendor gets a unique, time-limited link</span>
+    </div>
+  </div>`;
+}
+function sendRFQ() {
+  document.getElementById('content').insertAdjacentHTML('afterbegin', '<div class="alert alert-success page" style="margin-bottom:16px;">✅ <strong>RFQ sent!</strong> Vendors will receive their secure submission links via email.</div>');
+  rfqSelectedPR = null; rfqSelectedVendors = [];
+  setTimeout(() => navigate(document.querySelector('[data-page=rfq]')), 2500);
+}
+
+// ─── VENDOR PORTAL ────────────────────────────────────────────────────────────
+function openVendorPortal() { document.getElementById('vendor-portal').classList.add('open'); }
+function closeVendorPortal() { document.getElementById('vendor-portal').classList.remove('open'); document.getElementById('vp-card').innerHTML = document.getElementById('vp-card').innerHTML; }
+function submitVendorForm() {
+  document.getElementById('vp-card').innerHTML = `<div class="vp-success">
+    <div class="vp-success-icon">✅</div>
+    <div style="font-family:var(--font-display);font-size:22px;color:var(--text);margin-bottom:8px;">Quote Submitted!</div>
+    <p style="color:var(--slate);font-size:14px;margin-bottom:20px;">Thank you. Your pricing has been received and the procurement team has been notified.</p>
+    <div style="background:#F8FAFC;border-radius:9px;padding:12px 16px;display:inline-block;font-size:13px;">
+      <strong>Reference:</strong> #QUO-${Math.floor(Math.random()*900000+100000)}
+    </div>
+    <br><br><button class="btn btn-secondary" onclick="closeVendorPortal()">← Close Preview</button>
+  </div>`;
+}
+
+// ─── PRICE BENCHMARKING ENGINE ────────────────────────────────────────────────
+// Historical price database — grows automatically as new quotes are recorded.
+// Each entry: { item, price, vendor, date }
+const PRICE_HISTORY_KEY = 'buildco_price_history';
+
+function loadPriceHistory() {
+  try { return JSON.parse(localStorage.getItem(PRICE_HISTORY_KEY)) || {}; }
+  catch(e) { return {}; }
+}
+function savePriceHistory(db) {
+  try { localStorage.setItem(PRICE_HISTORY_KEY, JSON.stringify(db)); }
+  catch(e) { /* quota full – silently fail */ }
+}
+
+// Seed realistic historical data on first load so benchmarking works immediately.
+function seedHistoryIfEmpty() {
+  const db = loadPriceHistory();
+  if (db['Steel H-beam 200×200']) return; // already seeded
+  const seed = {
+    'Steel H-beam 200×200': [
+      {price:14200,vendor:'SteelMark Corp.',date:'2025-10-12'},
+      {price:14600,vendor:'MetroSteel Inc.',date:'2025-11-05'},
+      {price:14800,vendor:'FastBuild Supply',date:'2025-12-18'},
+      {price:13900,vendor:'HardCo Materials',date:'2026-01-09'},
+      {price:15100,vendor:'SteelMark Corp.',date:'2026-02-01'},
+    ],
+    'Bolts M24': [
+      {price:26,vendor:'SteelMark Corp.',date:'2025-11-03'},
+      {price:29,vendor:'FastBuild Supply',date:'2025-12-15'},
+      {price:27,vendor:'MetroSteel Inc.',date:'2026-01-20'},
+    ],
+    'Portland Cement Type I': [
+      {price:185,vendor:'ConcreteMax Inc.',date:'2025-10-01'},
+      {price:192,vendor:'FastBuild Supply',date:'2025-11-14'},
+      {price:189,vendor:'ConcreteMax Inc.',date:'2026-01-05'},
+    ],
+    'Deformed Steel Bar 16mm': [
+      {price:238,vendor:'SteelMark Corp.',date:'2025-09-20'},
+      {price:245,vendor:'HardCo Materials',date:'2025-11-30'},
+      {price:241,vendor:'SteelMark Corp.',date:'2026-02-10'},
+    ],
+  };
+  savePriceHistory(seed);
+}
+
+// Record a newly submitted quote into the history.
+function recordQuoteToHistory(item, price, vendor) {
+  const db = loadPriceHistory();
+  if (!db[item]) db[item] = [];
+  // Avoid exact duplicates from repeated prototype clicks
+  const already = db[item].some(e => e.price === price && e.vendor === vendor);
+  if (!already) {
+    db[item].push({ price, vendor, date: new Date().toISOString().slice(0,10) });
+    savePriceHistory(db);
+  }
+}
+
+// Core benchmarking calculation for one item + a set of quotes.
+function calcBenchmark(itemName, quotes) {
+  const db = loadPriceHistory();
+  const history = db[itemName] || [];
+  const prices = quotes.map(q => q.price);
+  const histPrices = history.map(h => h.price);
+  const allPrices = [...histPrices, ...prices]; // blend history + current batch
+
+  const avg = allPrices.length ? allPrices.reduce((a,b)=>a+b,0)/allPrices.length : null;
+  const low  = Math.min(...prices);
+  const high = Math.max(...prices);
+  const spread = avg ? ((high - low) / avg * 100) : 0;
+
+  // Trend: compare last 3 historical entries slope
+  let trend = 'stable', trendDir = 'flat';
+  if (histPrices.length >= 3) {
+    const recent  = histPrices.slice(-3);
+    const older   = histPrices.slice(0, Math.max(1, histPrices.length-3));
+    const avgOld  = older.reduce((a,b)=>a+b,0)/older.length;
+    const avgNew  = recent.reduce((a,b)=>a+b,0)/recent.length;
+    const change  = (avgNew - avgOld) / avgOld * 100;
+    if      (change >  3) { trend = 'Increasing ↑'; trendDir = 'up';   }
+    else if (change < -3) { trend = 'Decreasing ↓'; trendDir = 'down'; }
+    else                  { trend = 'Stable →';     trendDir = 'flat'; }
+  }
+
+  return { avg, low, high, spread, trend, trendDir, histCount: histPrices.length };
+}
+
+// Classify a single price vs the benchmark average.
+function classifyPrice(price, avg) {
+  if (!avg) return { cls:'within', label:'No History', badge:'mc-within', rowCls:'' };
+  const dev = (price - avg) / avg * 100;
+  const abs = Math.abs(dev);
+  let cls, label, badge, rowCls;
+  if      (dev < -10) { cls='extreme-below'; label=`▼ ${Math.abs(dev).toFixed(1)}% Below`;  badge='mc-below';   rowCls='row-below-market'; }
+  else if (dev <  -5) { cls='below';         label=`▼ ${Math.abs(dev).toFixed(1)}% Below`;  badge='mc-below';   rowCls='row-below-market'; }
+  else if (dev <=  5) { cls='within';        label='Within Range';                           badge='mc-within';  rowCls=''; }
+  else if (dev <=  15){ cls='above';         label=`▲ ${dev.toFixed(1)}% Above`;             badge='mc-above';   rowCls='row-above-market'; }
+  else                { cls='extreme';       label=`▲ ${dev.toFixed(1)}% Above ⚠`;          badge='mc-extreme'; rowCls='row-extreme'; }
+  return { cls, label, badge, rowCls, dev };
+}
+
+// HTML for the dark insight panel shown above the comparison table.
+function renderBenchmarkPanel(itemName, bm) {
+  if (!bm.avg) return '';
+  const spreadPct = Math.min(100, bm.spread).toFixed(1);
+  const trendClass = { up:'bm-trend-up', flat:'bm-trend-flat', down:'bm-trend-down' }[bm.trendDir];
+  const trendIcon  = { up:'📈', flat:'➡️', down:'📉' }[bm.trendDir];
+  return `
+  <div class="bm-panel">
+    <div class="bm-panel-title">
+      <span>📊</span> Price Benchmarking Intelligence
+      <span style="margin-left:auto;font-size:10px;color:#64748B;font-weight:600;text-transform:none;letter-spacing:0;">
+        Based on ${bm.histCount} historical records + current quotes
+      </span>
+    </div>
+    <div class="bm-stats">
+      <div class="bm-stat">
+        <div class="bm-stat-label">Market Average</div>
+        <div class="bm-stat-value">₱${Math.round(bm.avg).toLocaleString()}</div>
+        <div class="bm-stat-sub">blended historical + current</div>
+      </div>
+      <div class="bm-stat">
+        <div class="bm-stat-label">Lowest Quote</div>
+        <div class="bm-stat-value" style="color:#6EE7B7;">₱${bm.low.toLocaleString()}</div>
+        <div class="bm-stat-sub" style="color:#34D399;">${((bm.avg-bm.low)/bm.avg*100).toFixed(1)}% below avg</div>
+      </div>
+      <div class="bm-stat">
+        <div class="bm-stat-label">Highest Quote</div>
+        <div class="bm-stat-value" style="color:#FCA5A5;">₱${bm.high.toLocaleString()}</div>
+        <div class="bm-stat-sub" style="color:#F87171;">${((bm.high-bm.avg)/bm.avg*100).toFixed(1)}% above avg</div>
+      </div>
+      <div class="bm-stat">
+        <div class="bm-stat-label">Price Spread</div>
+        <div class="bm-stat-value">${bm.spread.toFixed(1)}%</div>
+        <div class="bm-spread-bar"><div class="bm-spread-fill" style="width:${Math.min(spreadPct,100)}%;"></div></div>
+      </div>
+      <div class="bm-stat">
+        <div class="bm-stat-label">Price Trend</div>
+        <div style="margin-top:6px;"><span class="bm-trend ${trendClass}">${trendIcon} ${bm.trend}</span></div>
+        <div class="bm-stat-sub" style="margin-top:6px;">${bm.histCount} historical data points</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:12px;font-size:11px;color:#64748B;flex-wrap:wrap;padding-top:10px;border-top:1px solid rgba(255,255,255,.06);">
+      <span><span style="display:inline-block;width:10px;height:10px;background:#DEF7EC;border-radius:2px;margin-right:4px;"></span>Below Market (&lt;−5%)</span>
+      <span><span style="display:inline-block;width:10px;height:10px;background:#F1F5F9;border-radius:2px;margin-right:4px;border:1px solid #CBD5E1;"></span>Within Range (±5%)</span>
+      <span><span style="display:inline-block;width:10px;height:10px;background:#FDE8E8;border-radius:2px;margin-right:4px;"></span>Above Market (&gt;+5%)</span>
+      <span><span style="display:inline-block;width:10px;height:10px;background:#7F1D1D;border-radius:2px;border:1px solid #EF4444;margin-right:4px;"></span>Extreme Outlier (&gt;+15%)</span>
+    </div>
+  </div>`;
+}
+
+// ─── QUOTE COMPARISON ─────────────────────────────────────────────────────────
+let cmpSort = 'price';
+let cmpItemFilter = 'Steel H-beam 200×200'; // active item tab
+
+// Auto-seed history once
+seedHistoryIfEmpty();
+
+// All vendor quotes for PR-003 (both items)
+const ALL_QUOTES = [
+  {vendor:'SteelMark Corp.',  item:'Steel H-beam 200×200', price:14800, moq:5,   lead:7,  valid:'2026-04-15', notes:'Includes delivery'},
+  {vendor:'FastBuild Supply', item:'Steel H-beam 200×200', price:15800, moq:10,  lead:5,  valid:'2026-04-10', notes:'Stock available'},
+  {vendor:'HardCo Materials', item:'Steel H-beam 200×200', price:14500, moq:20,  lead:12, valid:'2026-04-20', notes:'Premium imported quality'},
+  {vendor:'SteelMark Corp.',  item:'Bolts M24',            price:28,    moq:500, lead:3,  valid:'2026-04-15', notes:''},
+  {vendor:'FastBuild Supply', item:'Bolts M24',            price:32,    moq:200, lead:2,  valid:'2026-04-10', notes:'Grade 8.8 available'},
+];
+
+function renderCompare() {
+  const items = [...new Set(ALL_QUOTES.map(q=>q.item))];
+  const quotes = ALL_QUOTES.filter(q=>q.item===cmpItemFilter);
+  const sorted  = [...quotes].sort((a,b)=> cmpSort==='price' ? a.price-b.price : a.lead-b.lead);
+
+  const bm        = calcBenchmark(cmpItemFilter, quotes);
+  const minPrice  = Math.min(...quotes.map(q=>q.price));
+  const minLead   = Math.min(...quotes.map(q=>q.lead));
+
+  // Classify every quote
+  const classified = sorted.map(q => ({
+    ...q,
+    bm: classifyPrice(q.price, bm.avg),
+    bestPrice: q.price === minPrice,
+    fastest:   q.lead  === minLead,
+  }));
+
+  return `
+  <div class="page-header">
+    <div><div class="page-title">Quote Comparison</div><div class="page-sub">PR-003 — Pasig River Bridge</div></div>
+    <div style="display:flex;gap:8px;">
+      <div class="tabs" style="margin:0;">
+        <button class="tab${cmpSort==='price'?' active':''}" onclick="setCmpSort('price')">⭐ Lowest Price</button>
+        <button class="tab${cmpSort==='lead'?' active':''}" onclick="setCmpSort('lead')">⚡ Fastest Delivery</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Item filter tabs -->
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
+    ${items.map(it=>`<button class="item-tab${cmpItemFilter===it?' active':''}" onclick="setCmpItem('${it.replace(/×/g,'x')}')">${it}</button>`).join('')}
+  </div>
+
+  <!-- BENCHMARKING PANEL -->
+  ${renderBenchmarkPanel(cmpItemFilter, bm)}
+
+  <!-- Legend row -->
+  <div style="display:flex;gap:14px;margin-bottom:12px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--slate);">
+      <div style="width:14px;height:14px;background:#FEF08A;border-radius:3px;border:1px solid #CA8A04;"></div> Best Price
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--slate);">
+      <div style="width:14px;height:14px;background:#BAE6FD;border-radius:3px;border:1px solid #0284C7;"></div> Fastest Delivery
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Vendor</th><th>Item</th><th>Unit Price</th><th>vs Market</th>
+          <th>MOQ</th><th>Lead Time</th><th>Valid Until</th><th>Notes</th><th>Badges</th><th>Action</th>
+        </tr></thead>
+        <tbody>
+          ${classified.map(q=>`
+          <tr class="${q.bm.rowCls}${q.bestPrice?' row-best-price':q.fastest?' row-fastest':''}">
+            <td style="font-weight:600;">${q.vendor}</td>
+            <td class="td-muted">${q.item}</td>
+            <td style="font-weight:700;color:${q.bestPrice?'#CA8A04':'var(--text)'};">₱${q.price.toLocaleString()}</td>
+            <td><span class="mc-badge ${q.bm.badge}">${q.bm.label}</span></td>
+            <td class="td-muted">${q.moq}</td>
+            <td style="font-weight:${q.fastest?700:400};color:${q.fastest?'#0284C7':'var(--slate)'};">${q.lead}d</td>
+            <td class="td-muted">${q.valid}</td>
+            <td class="td-muted" style="max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${q.notes||'—'}</td>
+            <td style="min-width:80px;">
+              <div style="display:flex;gap:3px;flex-wrap:wrap;">
+                ${q.bestPrice?'<span class="recommend-badge" style="background:#FEF08A;color:#CA8A04;">⭐ Price</span>':''}
+                ${q.fastest?'<span class="recommend-badge" style="background:#BAE6FD;color:#0284C7;">⚡ Fast</span>':''}
+              </div>
+            </td>
+            <td><button class="btn btn-success btn-xs" onclick="selectVendor('${q.vendor}',${q.price})">✓ Select</button></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function setCmpSort(s) { cmpSort = s; navigate(document.querySelector('[data-page=compare]')); }
+
+function setCmpItem(rawName) {
+  // convert back encoded × character
+  cmpItemFilter = rawName.replace(/x$/,'×').replace(/x /g,'× ');
+  // Simpler: just find matching item in ALL_QUOTES
+  const match = ALL_QUOTES.find(q => q.item.replace(/×/g,'x') === rawName);
+  if (match) cmpItemFilter = match.item;
+  navigate(document.querySelector('[data-page=compare]'));
+}
+
+function selectVendor(name, price) {
+  const quotes = ALL_QUOTES.filter(q => q.item === cmpItemFilter);
+  const bm      = calcBenchmark(cmpItemFilter, quotes);
+  const cl      = classifyPrice(price, bm.avg);
+
+  // Record this quote to history so benchmark improves over time
+  recordQuoteToHistory(cmpItemFilter, price, name);
+
+  // Build smart warning if above market
+  let warningHTML = '';
+  if (cl.cls === 'above' || cl.cls === 'extreme') {
+    const pct = cl.dev ? cl.dev.toFixed(1) : '?';
+    const severity = cl.cls === 'extreme' ? 'significantly' : 'moderately';
+    warningHTML = `
+    <div class="bm-warning">
+      <div class="bm-warning-icon">⚠️</div>
+      <div>
+        <strong>Price Warning:</strong> ${name}'s quote of ₱${price.toLocaleString()} is
+        <strong>${pct}%</strong> above the historical market average of ₱${Math.round(bm.avg).toLocaleString()}.
+        This vendor is priced <strong>${severity} above market</strong>.
+        Consider negotiating or requesting a revised quote before confirming.
+      </div>
+    </div>`;
+  }
+
+  showModal('Confirm Vendor Selection', `
+    ${warningHTML}
+    <div class="alert alert-info" style="${warningHTML?'':''}">
+      You are about to select <strong>${name}</strong> for PR-003. This will generate a Purchase Order.
+    </div>
+    <div class="grid-2" style="margin-bottom:14px;">
+      <div style="background:#F8FAFC;border-radius:8px;padding:10px 12px;">
+        <div style="font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;margin-bottom:3px;">Vendor</div>
+        <div style="font-size:13px;font-weight:600;">${name}</div>
+      </div>
+      <div style="background:#F8FAFC;border-radius:8px;padding:10px 12px;">
+        <div style="font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;margin-bottom:3px;">Unit Price</div>
+        <div style="font-size:13px;font-weight:600;">₱${price.toLocaleString()} <span class="mc-badge ${cl.badge}" style="font-size:10px;">${cl.label}</span></div>
+      </div>
+      <div style="background:#F8FAFC;border-radius:8px;padding:10px 12px;">
+        <div style="font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;margin-bottom:3px;">Market Average</div>
+        <div style="font-size:13px;font-weight:600;">${bm.avg ? '₱'+Math.round(bm.avg).toLocaleString() : 'No history'}</div>
+      </div>
+      <div style="background:#F8FAFC;border-radius:8px;padding:10px 12px;">
+        <div style="font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;margin-bottom:3px;">PR</div>
+        <div style="font-size:13px;font-weight:600;">PR-003 — Pasig River Bridge</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      ${cl.cls==='above'||cl.cls==='extreme'
+        ? `<button class="btn btn-secondary" onclick="closeModal()">↩ Re-evaluate</button>
+           <button class="btn btn-danger" onclick="confirmPO()">⚠ Select Anyway</button>`
+        : `<button class="btn btn-success" onclick="confirmPO()">✓ Confirm & Create PO</button>`
+      }
+    </div>`, 'modal-md');
+}
+
+function confirmPO() { closeModal(); navigate(document.querySelector('[data-page=po]')); }
+
+// ─── PURCHASE ORDERS ──────────────────────────────────────────────────────────
+function renderPO() {
+  return `
+  <div class="page-header">
+    <div><div class="page-title">Purchase Orders</div><div class="page-sub">1 active PO</div></div>
+    <button class="btn btn-primary" onclick="navigate(document.querySelector('[data-page=compare]'))">
+      + Create from Comparison
+    </button>
+  </div>
+  <div class="delivery-card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+      <div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+          <span style="font-size:18px;font-weight:800;color:var(--blue);font-family:var(--font-display);">PO-001</span>
+          <span class="badge" style="color:#1A56DB;background:#DBEAFE;">Sent to Vendor</span>
+        </div>
+        <div style="font-size:13px;color:var(--slate);">HardCo Materials · Issued: 2026-03-05 · Linked to PR-004</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:24px;font-weight:800;">₱87,000</div>
+        <div style="font-size:12px;color:var(--slate);">Total Amount</div>
+      </div>
+    </div>
+    <div style="border-radius:9px;overflow:hidden;border:1px solid var(--border);">
+      <table style="width:100%;font-size:13px;">
+        <thead><tr style="background:#F8FAFC;">
+          <th style="padding:8px 12px;text-align:left;font-size:10.5px;font-weight:700;color:var(--slate);text-transform:uppercase;">Item</th>
+          <th style="padding:8px 12px;text-align:left;font-size:10.5px;font-weight:700;color:var(--slate);text-transform:uppercase;">Qty</th>
+          <th style="padding:8px 12px;text-align:left;font-size:10.5px;font-weight:700;color:var(--slate);text-transform:uppercase;">Unit</th>
+          <th style="padding:8px 12px;text-align:left;font-size:10.5px;font-weight:700;color:var(--slate);text-transform:uppercase;">Unit Price</th>
+          <th style="padding:8px 12px;text-align:left;font-size:10.5px;font-weight:700;color:var(--slate);text-transform:uppercase;">Total</th>
+        </tr></thead>
+        <tbody>
+          <tr><td style="padding:10px 12px;">Gravel Crushed 3/4 inch</td><td style="padding:10px 12px;color:var(--slate);">150</td><td style="padding:10px 12px;color:var(--slate);">cu.m</td><td style="padding:10px 12px;color:var(--slate);">₱580</td><td style="padding:10px 12px;font-weight:700;">₱87,000</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:14px;">
+      <button class="btn btn-outline btn-sm">👁 View Full PO</button>
+      <button class="btn btn-secondary btn-sm">📄 Download PDF</button>
+      <button class="btn btn-secondary btn-sm" onclick="navigate(document.querySelector('[data-page=delivery]'))">📦 Track Delivery →</button>
+    </div>
+  </div>
+  <div style="background:#F8FAFC;border-radius:var(--radius);border:1px dashed var(--border);padding:30px;text-align:center;color:var(--slate);font-size:13px;">
+    More POs will appear here as vendors are selected from Quote Comparison.
+  </div>`;
+}
+
+// ─── DELIVERY ─────────────────────────────────────────────────────────────────
+function renderDelivery() {
+  const dels = [
+    { id:'DEL-001', po:'PO-001', date:'2026-03-07', confirmed:'Ana Cruz', items:[{ desc:'Gravel Crushed 3/4 inch', ordered:150, delivered:80, unit:'cu.m', status:'partial' }] },
+    ...STATE.prItems.filter(p=>p._delEntry).map(p=>p._delEntry)
+  ];
+  return `
+  <div class="page-header">
+    <div><div class="page-title">Delivery Tracking</div><div class="page-sub">Warehouse delivery confirmations</div></div>
+    <button class="btn btn-primary" onclick="openConfirmDelivery()">📦 Confirm Delivery</button>
+  </div>
+  ${dels.map(del=>`
+    <div class="delivery-card" style="margin-bottom:14px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
+        <span style="font-size:16px;font-weight:800;color:var(--green);">${del.id}</span>
+        <span style="font-size:13px;color:var(--slate);">→ ${del.po} · ${del.date} · Confirmed by ${del.confirmed}</span>
+      </div>
+      ${del.items.map(it=>{
+        const pct = Math.round(it.delivered/it.ordered*100);
+        return `<div style="background:#F8FAFC;border-radius:9px;padding:14px 16px;border:1px solid var(--border);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+            <span style="font-weight:600;font-size:14px;">${it.desc}</span>
+            <span class="badge" style="color:${it.status==='partial'?'#B45309':'#057A55'};background:${it.status==='partial'?'#FEF3C7':'#DEF7EC'};">${it.status==='partial'?'Partial':'Full'} Delivery</span>
+          </div>
+          <div style="display:flex;gap:24px;margin-bottom:10px;flex-wrap:wrap;">
+            <div><div style="font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;margin-bottom:2px;">Ordered</div><div style="font-size:18px;font-weight:800;">${it.ordered} ${it.unit}</div></div>
+            <div><div style="font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;margin-bottom:2px;">Delivered</div><div style="font-size:18px;font-weight:800;color:var(--green);">${it.delivered} ${it.unit}</div></div>
+            <div><div style="font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;margin-bottom:2px;">Remaining</div><div style="font-size:18px;font-weight:800;color:#B45309;">${it.ordered-it.delivered} ${it.unit}</div></div>
+          </div>
+          <div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${pct===100?'var(--green)':'#F59E0B'};"></div></div>
+          <div style="font-size:11px;color:var(--slate);margin-top:5px;">${pct}% delivered</div>
+        </div>`;
+      }).join('')}
+    </div>`).join('')}`;
+}
+function openConfirmDelivery() {
+  showModal('Confirm Delivery', `
+    <div class="field"><label class="field-label">Purchase Order</label>
+      <select class="field-select" id="del-po"><option value="PO-001">PO-001 — HardCo Materials</option></select>
+    </div>
+    <div class="field"><label class="field-label">Delivery Date <span class="req">*</span></label><input class="field-input" type="date" id="del-date"></div>
+    <div class="grid-2">
+      <div class="field"><label class="field-label">Ordered Qty</label><input class="field-input" value="150" readonly style="background:#F8FAFC;" id="del-ordered"></div>
+      <div class="field"><label class="field-label">Delivered Qty <span class="req">*</span></label><input class="field-input" type="number" placeholder="0" id="del-qty"></div>
+    </div>
+    <div class="field"><label class="field-label">Status</label>
+      <select class="field-select" id="del-status"><option value="partial">Partial Delivery</option><option value="full">Full Delivery</option></select>
+    </div>
+    <div class="field"><label class="field-label">Notes</label><textarea class="field-textarea" id="del-notes" placeholder="Condition of goods, driver name, etc."></textarea></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-success" onclick="confirmDelivery()">✓ Confirm Delivery</button>
+    </div>`, 'modal-md');
+}
+function confirmDelivery() {
+  const date = document.getElementById('del-date').value;
+  const qty = parseInt(document.getElementById('del-qty').value)||0;
+  const status = document.getElementById('del-status').value;
+  if (!date || !qty) { alert('Please fill in required fields.'); return; }
+  STATE.deliveryCounter++;
+  closeModal();
+  navigate(document.querySelector('[data-page=delivery]'));
+}
+
+// ─── VENDORS ──────────────────────────────────────────────────────────────────
+function renderVendors() {
+  const vendors = [
+    {id:1,name:'SteelMark Corp.',contact:'Ben Uy',email:'ben@steelmark.com',phone:'09171234567',cat:'Steel & Metal',active:true,quotes:3},
+    {id:2,name:'ConcreteMax Inc.',contact:'Lea Torres',email:'lea@concretemax.com',phone:'09281234567',cat:'Concrete',active:true,quotes:1},
+    {id:3,name:'FastBuild Supply',contact:'Tony Chu',email:'tony@fastbuild.com',phone:'09391234567',cat:'General Hardware',active:true,quotes:4},
+    {id:4,name:'HardCo Materials',contact:'Gina Ramos',email:'gina@hardco.com',phone:'09451234567',cat:'Aggregates',active:true,quotes:2},
+  ];
+  return `
+  <div class="page-header">
+    <div><div class="page-title">Vendor Database</div><div class="page-sub">${vendors.length} registered vendors</div></div>
+    <button class="btn btn-primary" onclick="openAddVendor()">+ Add Vendor</button>
+  </div>
+  <div class="grid-auto">
+    ${vendors.map(v=>`
+      <div class="card" style="padding:18px 20px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+          <div style="width:40px;height:40px;background:var(--blue-light);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:var(--blue);">${v.name[0]}</div>
+          <span style="background:${v.active?'var(--green-light)':'var(--red-light)'};color:${v.active?'var(--green)':'var(--red)'};padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700;">${v.active?'Active':'Inactive'}</span>
+        </div>
+        <div style="font-weight:700;font-size:15px;margin-bottom:2px;">${v.name}</div>
+        <div style="font-size:11px;color:var(--slate);background:var(--slate-light);display:inline-block;padding:2px 8px;border-radius:20px;margin-bottom:10px;">${v.cat}</div>
+        <div style="font-size:12px;color:#475569;line-height:1.8;">
+          👤 ${v.contact}<br>✉️ ${v.email}<br>📞 ${v.phone}
+        </div>
+        <div style="border-top:1px solid var(--border);margin-top:12px;padding-top:10px;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:11px;color:var(--slate);">${v.quotes} quote${v.quotes!==1?'s':''} submitted</span>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-outline btn-xs">Edit</button>
+            <button class="btn btn-ghost btn-xs">History</button>
+          </div>
+        </div>
+      </div>`).join('')}
+  </div>`;
+}
+function openAddVendor() {
+  showModal('Add New Vendor', `
+    <div class="grid-2">
+      <div class="field" style="grid-column:1/-1"><label class="field-label">Company Name <span class="req">*</span></label><input class="field-input" placeholder="e.g. Metro Steel Co."></div>
+      <div class="field"><label class="field-label">Contact Person <span class="req">*</span></label><input class="field-input"></div>
+      <div class="field"><label class="field-label">Category</label><input class="field-input" placeholder="e.g. Steel & Metal"></div>
+      <div class="field"><label class="field-label">Email <span class="req">*</span></label><input class="field-input" type="email"></div>
+      <div class="field"><label class="field-label">Phone</label><input class="field-input"></div>
+      <div class="field" style="grid-column:1/-1"><label class="field-label">Address</label><textarea class="field-textarea" rows="2"></textarea></div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="closeModal()">Save Vendor</button>
+    </div>`, 'modal-md');
+}
+
+// ─── USERS ────────────────────────────────────────────────────────────────────
+function renderUsers() {
+  const users = [
+    {id:1,name:'Maria Santos',email:'maria@buildco.com',role:'procurement',active:true},
+    {id:2,name:'James Reyes', email:'james@buildco.com',role:'requester',  active:true},
+    {id:3,name:'Ana Cruz',    email:'ana@buildco.com',  role:'warehouse',  active:true},
+    {id:4,name:'Carlos Tan',  email:'carlos@buildco.com',role:'admin',     active:true},
+    {id:5,name:'Rico Lim',    email:'rico@buildco.com', role:'requester',  active:false},
+  ];
+  const roleColors = { admin:['#6C2BD9','#EDEBFE'], procurement:['#1A56DB','#DBEAFE'], requester:['#057A55','#DEF7EC'], warehouse:['#B45309','#FEF3C7'] };
+  const roleCounts = ['admin','procurement','requester','warehouse'].map(r=>({role:r,count:users.filter(u=>u.role===r).length}));
+  return `
+  <div class="page-header">
+    <div><div class="page-title">User Management</div><div class="page-sub">${users.length} system users</div></div>
+    <button class="btn btn-primary">+ Add User</button>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;">
+    ${roleCounts.map(({role,count})=>{
+      const [color,bg]=roleColors[role]||['#64748B','#F1F5F9'];
+      return `<div style="background:${bg};border-radius:var(--radius);padding:14px 16px;border:1px solid ${color}20;">
+        <div style="font-size:26px;font-weight:800;color:${color};font-family:var(--font-display);">${count}</div>
+        <div style="font-size:12px;font-weight:700;color:${color};text-transform:capitalize;">${role}</div>
+      </div>`;
+    }).join('')}
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>User</th><th>Email</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+          ${users.map(u=>{
+            const [color,bg]=roleColors[u.role]||['#64748B','#F1F5F9'];
+            return `<tr>
+              <td><div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:32px;height:32px;background:${bg};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:${color};flex-shrink:0;">${u.name.split(' ').map(n=>n[0]).join('')}</div>
+                <span style="font-weight:600;">${u.name}</span>
+              </div></td>
+              <td class="td-muted">${u.email}</td>
+              <td><span style="background:${bg};color:${color};padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;text-transform:capitalize;">${u.role}</span></td>
+              <td><span style="background:${u.active?'var(--green-light)':'var(--red-light)'};color:${u.active?'var(--green)':'var(--red)'};padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;">${u.active?'Active':'Inactive'}</span></td>
+              <td><div class="td-actions"><button class="btn btn-ghost btn-xs">Edit</button><button class="btn btn-ghost btn-xs">${u.active?'Disable':'Enable'}</button></div></td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+// ─── DATABASE SCHEMA ──────────────────────────────────────────────────────────
+function renderSchema() {
+  const tables = [
+    { name:'users',             color:'#7C3AED', fields:[['id','UUID PK',''],['name','VARCHAR(255)','Full name'],['email','VARCHAR(255)','Unique, login'],['password_hash','TEXT','Bcrypt'],['role','ENUM','admin|procurement|requester|warehouse'],['active','BOOLEAN','Account status'],['created_at','TIMESTAMP','Auto']], rels:[] },
+    { name:'projects',          color:'#0694A2', fields:[['id','UUID PK',''],['name','VARCHAR(255)','Project title'],['location','VARCHAR(255)',''],['status','ENUM','active|closed'],['created_by','UUID FK','→ users.id'],['created_at','TIMESTAMP','']], rels:['created_by → users.id'] },
+    { name:'purchase_requests', color:'#1A56DB', fields:[['id','UUID PK','e.g. PR-001'],['project_id','UUID FK','→ projects.id'],['requester_id','UUID FK','→ users.id'],['department','VARCHAR(100)',''],['required_date','DATE',''],['status','ENUM','pending_review|rfq_sent|comparing|po_created|delivered'],['created_at','TIMESTAMP','']], rels:['project_id → projects.id','requester_id → users.id'] },
+    { name:'pr_items',          color:'#1A56DB', fields:[['id','UUID PK',''],['pr_id','UUID FK','→ purchase_requests.id CASCADE'],['description','TEXT','Item description'],['quantity','DECIMAL(12,2)',''],['unit','VARCHAR(50)','pcs, kg, m…'],['estimated_cost','DECIMAL(12,2)','Optional']], rels:['pr_id → purchase_requests.id (CASCADE DELETE)'] },
+    { name:'vendors',           color:'#057A55', fields:[['id','UUID PK',''],['company_name','VARCHAR(255)',''],['contact_person','VARCHAR(255)',''],['email','VARCHAR(255)','Unique'],['phone','VARCHAR(50)',''],['category','VARCHAR(100)',''],['active','BOOLEAN',''],['created_at','TIMESTAMP','']], rels:[] },
+    { name:'rfq_invitations',   color:'#B45309', fields:[['id','UUID PK',''],['pr_id','UUID FK','→ purchase_requests.id'],['vendor_id','UUID FK','→ vendors.id'],['token','VARCHAR(255)','Unique secure token'],['status','ENUM','invited|opened|submitted|expired'],['invited_at','TIMESTAMP',''],['opened_at','TIMESTAMP','NULL until opened'],['expires_at','TIMESTAMP','From required_date']], rels:['pr_id → purchase_requests.id','vendor_id → vendors.id'] },
+    { name:'vendor_quotes',     color:'#6C2BD9', fields:[['id','UUID PK',''],['invitation_id','UUID FK','→ rfq_invitations.id'],['pr_item_id','UUID FK','→ pr_items.id'],['unit_price','DECIMAL(12,2)',''],['moq','INTEGER','Min order qty'],['lead_time_days','INTEGER',''],['valid_until','DATE',''],['notes','TEXT',''],['attachment_url','TEXT','S3 URL'],['submitted_at','TIMESTAMP','']], rels:['invitation_id → rfq_invitations.id','pr_item_id → pr_items.id'] },
+    { name:'purchase_orders',   color:'#0F766E', fields:[['id','UUID PK','e.g. PO-001'],['pr_id','UUID FK','→ purchase_requests.id'],['vendor_id','UUID FK','→ vendors.id'],['created_by','UUID FK','→ users.id'],['total_amount','DECIMAL(12,2)',''],['status','ENUM','draft|sent|confirmed|delivered'],['issued_date','DATE',''],['created_at','TIMESTAMP','']], rels:['pr_id → purchase_requests.id','vendor_id → vendors.id','created_by → users.id'] },
+    { name:'deliveries',        color:'#C81E1E', fields:[['id','UUID PK','e.g. DEL-001'],['po_id','UUID FK','→ purchase_orders.id'],['confirmed_by','UUID FK','→ users.id (warehouse)'],['delivery_date','DATE',''],['notes','TEXT',''],['created_at','TIMESTAMP','']], rels:['po_id → purchase_orders.id','confirmed_by → users.id'] },
+    { name:'delivery_items',    color:'#C81E1E', fields:[['id','UUID PK',''],['delivery_id','UUID FK','→ deliveries.id CASCADE'],['po_item_id','UUID FK','→ po_items.id'],['ordered_qty','DECIMAL(12,2)','From PO'],['delivered_qty','DECIMAL(12,2)','Actual'],['status','ENUM','partial|full']], rels:['delivery_id → deliveries.id (CASCADE)','po_item_id → po_items.id'] },
+  ];
+  return `
+  <div class="page-header"><div>
+    <div class="page-title">Database Schema</div>
+    <div class="page-sub">Click any table to expand fields and relationships</div>
+  </div></div>
+  <div class="card" style="padding:16px 20px;margin-bottom:18px;">
+    <div style="font-size:13px;font-weight:700;margin-bottom:10px;">Entity Flow</div>
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:11px;">
+      ${['users','projects','purchase_requests','pr_items','rfq_invitations','vendor_quotes','purchase_orders','deliveries'].map((t,i,a)=>`
+        <span style="background:${['#EDEBFE','#D5F5F6','#DBEAFE','#DBEAFE','#FEF3C7','#EDEBFE','#DEF7EC','#FDE8E8'][i]};color:${['#6C2BD9','#0694A2','#1A56DB','#1A56DB','#B45309','#6C2BD9','#0F766E','#C81E1E'][i]};padding:4px 10px;border-radius:6px;font-weight:700;">${t}</span>
+        ${i<a.length-1?'<span style="color:#CBD5E1;font-weight:700;">→</span>':''}`).join('')}
+    </div>
+  </div>
+  <div class="grid-auto">
+    ${tables.map(t=>`
+      <div class="schema-card" onclick="toggleSchema('${t.name}')">
+        <div class="schema-head" style="background:${t.color};">
+          <span style="color:#fff;font-weight:800;font-size:13px;font-family:var(--font-display);">${t.name}</span>
+          <span style="color:rgba(255,255,255,.7);font-size:11px;">${t.fields.length} fields ▾</span>
+        </div>
+        <div class="schema-body" id="schema-${t.name}">
+          <div class="schema-row" style="background:#F8FAFC;font-size:10px;font-weight:700;color:var(--slate);text-transform:uppercase;letter-spacing:.06em;">
+            <span>Field</span><span>Type</span><span>Note</span>
+          </div>
+          ${t.fields.map(([f,tp,n])=>`<div class="schema-row"><span class="schema-field">${f}</span><span class="schema-type">${tp}</span><span class="schema-note">${n}</span></div>`).join('')}
+          ${t.rels.length?`${t.rels.map(r=>`<div class="schema-rel">🔗 ${r}</div>`).join('')}`:''}
+        </div>
+      </div>`).join('')}
+  </div>`;
+}
+function toggleSchema(name) {
+  const el = document.getElementById(`schema-${name}`);
+  el.classList.toggle('open');
+}
+
+// ─── PRICE BENCHMARKING FULL PAGE ─────────────────────────────────────────────
+function renderBenchmarkPage() {
+  const db = loadPriceHistory();
+  const itemNames = Object.keys(db);
+
+  if (!itemNames.length) {
+    return `<div class="page-header"><div class="page-title">Price Benchmarking</div></div>
+    <div class="card" style="padding:40px;text-align:center;color:var(--slate);">
+      No historical price data yet. Submit vendor quotes to start building the benchmark database.
+    </div>`;
+  }
+
+  // Build per-item summary cards
+  const cards = itemNames.map(item => {
+    const entries = db[item];
+    const prices  = entries.map(e => e.price);
+    const avg     = prices.reduce((a,b)=>a+b,0) / prices.length;
+    const low     = Math.min(...prices);
+    const high    = Math.max(...prices);
+    const spread  = ((high-low)/avg*100).toFixed(1);
+    const latest  = entries[entries.length-1];
+
+    // Trend
+    let trendDir = 'flat', trendLabel = 'Stable →', trendClass = 'bm-trend-flat';
+    if (prices.length >= 3) {
+      const older = prices.slice(0, Math.ceil(prices.length/2));
+      const newer = prices.slice(Math.floor(prices.length/2));
+      const oAvg  = older.reduce((a,b)=>a+b,0)/older.length;
+      const nAvg  = newer.reduce((a,b)=>a+b,0)/newer.length;
+      const chg   = (nAvg-oAvg)/oAvg*100;
+      if      (chg >  3) { trendDir='up';   trendLabel='Increasing ↑'; trendClass='bm-trend-up'; }
+      else if (chg < -3) { trendDir='down'; trendLabel='Decreasing ↓'; trendClass='bm-trend-down'; }
+    }
+
+    // Sparkline-style price history bar chart (mini)
+    const maxP = Math.max(...prices);
+    const minP = Math.min(...prices);
+    const range = maxP - minP || 1;
+    const bars = prices.map(p => {
+      const h = Math.round(((p-minP)/range)*28)+4;
+      const col = p === low ? '#34D399' : p === high ? '#F87171' : '#60A5FA';
+      return `<div style="width:8px;height:${h}px;background:${col};border-radius:2px 2px 0 0;flex-shrink:0;" title="₱${p.toLocaleString()}"></div>`;
+    }).join('');
+
+    return `
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="background:var(--navy);padding:14px 18px 10px;border-bottom:1px solid rgba(255,255,255,.06);">
+        <div style="font-size:13px;font-weight:700;color:#F1F5F9;margin-bottom:4px;">${item}</div>
+        <span class="bm-trend ${trendClass}" style="font-size:10px;">${trendLabel}</span>
+      </div>
+      <div style="padding:14px 18px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;">
+          <div style="text-align:center;">
+            <div style="font-size:9px;font-weight:700;color:var(--slate);text-transform:uppercase;margin-bottom:2px;">Avg Price</div>
+            <div style="font-size:15px;font-weight:800;color:var(--text);">₱${Math.round(avg).toLocaleString()}</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:9px;font-weight:700;color:var(--slate);text-transform:uppercase;margin-bottom:2px;">Low</div>
+            <div style="font-size:15px;font-weight:800;color:#057A55;">₱${low.toLocaleString()}</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:9px;font-weight:700;color:var(--slate);text-transform:uppercase;margin-bottom:2px;">High</div>
+            <div style="font-size:15px;font-weight:800;color:#C81E1E;">₱${high.toLocaleString()}</div>
+          </div>
+        </div>
+        <!-- Mini bar chart -->
+        <div style="display:flex;align-items:flex-end;gap:3px;height:36px;margin-bottom:8px;padding:0 2px;">
+          ${bars}
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--slate);">
+          <span>${entries.length} records</span>
+          <span>Spread: ${spread}%</span>
+          <span>Latest: ₱${latest.price.toLocaleString()}</span>
+        </div>
+      </div>
+      <!-- History table -->
+      <div style="border-top:1px solid var(--border);max-height:160px;overflow-y:auto;">
+        <table style="width:100%;font-size:11px;">
+          <thead><tr style="background:#F8FAFC;">
+            <th style="padding:5px 12px;text-align:left;color:var(--slate);font-weight:700;text-transform:uppercase;font-size:9.5px;">Date</th>
+            <th style="padding:5px 12px;text-align:left;color:var(--slate);font-weight:700;text-transform:uppercase;font-size:9.5px;">Vendor</th>
+            <th style="padding:5px 12px;text-align:right;color:var(--slate);font-weight:700;text-transform:uppercase;font-size:9.5px;">Price</th>
+            <th style="padding:5px 12px;text-align:right;color:var(--slate);font-weight:700;text-transform:uppercase;font-size:9.5px;">vs Avg</th>
+          </tr></thead>
+          <tbody>
+            ${[...entries].reverse().map(e => {
+              const dev = ((e.price-avg)/avg*100);
+              const cl  = classifyPrice(e.price, avg);
+              return `<tr style="border-top:1px solid #F8FAFC;">
+                <td style="padding:5px 12px;color:var(--slate);">${e.date}</td>
+                <td style="padding:5px 12px;font-weight:600;">${e.vendor}</td>
+                <td style="padding:5px 12px;text-align:right;font-weight:700;">₱${e.price.toLocaleString()}</td>
+                <td style="padding:5px 12px;text-align:right;"><span class="mc-badge ${cl.badge}" style="font-size:9.5px;">${dev>=0?'+':''}${dev.toFixed(1)}%</span></td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+  });
+
+  // Summary stats across entire DB
+  const totalRecords = itemNames.reduce((sum, k) => sum + db[k].length, 0);
+  const allPrices    = itemNames.flatMap(k => db[k].map(e => e.price));
+  const overallAvg   = allPrices.reduce((a,b)=>a+b,0)/allPrices.length;
+
+  return `
+  <div class="page-header">
+    <div>
+      <div class="page-title">Price Benchmarking</div>
+      <div class="page-sub">Historical price intelligence across ${itemNames.length} items · ${totalRecords} records</div>
+    </div>
+    <button class="btn btn-secondary btn-sm" onclick="navigate(document.querySelector('[data-page=compare]'))">
+      ← Back to Comparison
+    </button>
+  </div>
+
+  <!-- Header insight strip -->
+  <div class="bm-panel" style="margin-bottom:18px;">
+    <div class="bm-panel-title">📊 Database Overview</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;">
+      <div class="bm-stat"><div class="bm-stat-label">Items Tracked</div><div class="bm-stat-value">${itemNames.length}</div></div>
+      <div class="bm-stat"><div class="bm-stat-label">Total Records</div><div class="bm-stat-value">${totalRecords}</div></div>
+      <div class="bm-stat"><div class="bm-stat-label">Vendors Recorded</div><div class="bm-stat-value">${[...new Set(itemNames.flatMap(k=>db[k].map(e=>e.vendor)))].length}</div></div>
+      <div class="bm-stat">
+        <div class="bm-stat-label">Data Health</div>
+        <div style="margin-top:6px;">
+          <span class="bm-trend ${totalRecords>=10?'bm-trend-down':'bm-trend-flat'}">${totalRecords>=15?'🟢 Good':totalRecords>=8?'🟡 Building':'🔴 Limited'}</span>
+        </div>
+        <div class="bm-stat-sub" style="margin-top:4px;">${totalRecords>=15?'Reliable benchmarks':'Add more quotes'}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Per-item grid -->
+  <div class="grid-auto">${cards.join('')}</div>
+
+  <div style="margin-top:18px;padding:14px 18px;background:var(--blue-light);border-radius:var(--radius);border:1px solid var(--blue-mid);font-size:13px;color:#1E3A5F;">
+    💡 <strong>How it works:</strong> Every time a vendor quote is received and recorded, the price is added to this database.
+    The benchmarking engine computes a blended average of historical + current quotes and classifies each new quote automatically.
+    The more quotes you record, the more accurate the market average becomes.
+  </div>`;
+}
+
+// ─── DEPLOYMENT GUIDE ─────────────────────────────────────────────────────────
+function renderDeploy() {
+  return `
+  <div class="page-header"><div>
+    <div class="page-title">Deployment Guide</div>
+    <div class="page-sub">How to take this prototype to a live production system</div>
+  </div></div>
+
+  <!-- Architecture Overview -->
+  <div class="card" style="padding:20px;margin-bottom:18px;">
+    <div class="card-title" style="margin-bottom:16px;">📐 Recommended System Architecture</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;">
+      ${[
+        ['🖥️','Frontend','React.js + Vite','Tailwind CSS','Hosted on Vercel/Netlify'],
+        ['⚙️','Backend API','Node.js + Express','or Django REST (Python)','Hosted on Railway/Render'],
+        ['🗄️','Database','PostgreSQL 15+','Managed on Supabase','or Neon / Railway'],
+        ['📧','Email','SendGrid API','or AWS SES','For RFQ + notifications'],
+        ['🗂️','File Storage','AWS S3','or Cloudinary','For quote attachments'],
+        ['🔐','Auth','JWT tokens','+ bcrypt passwords','Role-based access control'],
+      ].map(([icon,label,...lines])=>`
+        <div style="background:var(--navy);border-radius:9px;padding:14px 15px;color:#fff;">
+          <div style="font-size:20px;margin-bottom:6px;">${icon}</div>
+          <div style="font-size:12px;font-weight:800;color:#93C5FD;text-transform:uppercase;margin-bottom:4px;">${label}</div>
+          ${lines.map(l=>`<div style="font-size:12px;color:#94A3B8;">${l}</div>`).join('')}
+        </div>`).join('')}
+    </div>
+  </div>
+
+  <!-- Deployment Options -->
+  <div style="font-size:15px;font-weight:700;margin-bottom:12px;">🚀 Deployment Options</div>
+  <div style="display:grid;gap:12px;margin-bottom:18px;">
+    ${[
+      { tier:'⚡ Quickest Start', name:'Supabase + Vercel', time:'~2 hours', cost:'Free tier available', color:'#057A55', bg:'#DEF7EC',
+        desc:'Supabase gives you PostgreSQL + auth + file storage + REST API out-of-the-box. Deploy frontend to Vercel for free. Ideal for prototyping and small teams.',
+        steps:['Create project on supabase.com', 'Run SQL schema in Supabase SQL editor', 'Connect frontend to Supabase JS client', 'Deploy to Vercel with git push'],
+        stack:'Supabase · Vercel · React' },
+      { tier:'🏗️ Recommended Production', name:'Railway (Backend) + Vercel (Frontend)', time:'~1 day', cost:'~$5–20/month', color:'#1A56DB', bg:'#DBEAFE',
+        desc:'Railway hosts your Node.js API and PostgreSQL database. Vercel hosts the React frontend. Both have CI/CD from GitHub. Best balance of control and simplicity.',
+        steps:['Push backend to GitHub', 'Connect Railway to GitHub repo', 'Add PostgreSQL plugin on Railway', 'Deploy frontend to Vercel, set VITE_API_URL env var'],
+        stack:'Node.js · Express · PostgreSQL · Railway · Vercel' },
+      { tier:'🏢 Enterprise Scale', name:'AWS / Azure Full Stack', time:'~1 week', cost:'Variable by usage', color:'#6C2BD9', bg:'#EDEBFE',
+        desc:'For large teams needing SLAs, VPN access, compliance controls, and custom domains. Uses EC2/ECS for the API, RDS for the database, S3 for storage, SES for email, and CloudFront for CDN.',
+        steps:['Provision RDS PostgreSQL instance', 'Deploy Docker container to ECS', 'Configure CloudFront + Route 53', 'Set up SES for email sending', 'Configure IAM roles for S3 access'],
+        stack:'AWS EC2/ECS · RDS · S3 · SES · CloudFront · Route 53' },
+    ].map(d=>`
+      <div class="deploy-option">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:10px;">
+          <div>
+            <span class="deploy-badge" style="background:${d.bg};color:${d.color};margin-bottom:6px;display:inline-block;">${d.tier}</span>
+            <div style="font-size:16px;font-weight:800;font-family:var(--font-display);">${d.name}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:13px;font-weight:700;color:${d.color};">${d.time}</div>
+            <div style="font-size:11px;color:var(--slate);">${d.cost}</div>
+          </div>
+        </div>
+        <p style="font-size:13px;color:var(--slate);margin-bottom:10px;line-height:1.6;">${d.desc}</p>
+        <div style="font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Setup Steps</div>
+        <ol style="padding-left:18px;font-size:13px;color:#334155;line-height:2;">
+          ${d.steps.map(s=>`<li>${s}</li>`).join('')}
+        </ol>
+        <div style="margin-top:10px;background:var(--slate-light);border-radius:7px;padding:7px 12px;font-size:11px;font-weight:700;color:var(--slate);">Stack: ${d.stack}</div>
+      </div>`).join('')}
+  </div>
+
+  <!-- Environment Variables -->
+  <div class="card" style="padding:18px 20px;margin-bottom:18px;">
+    <div class="card-title" style="margin-bottom:12px;">🔑 Required Environment Variables</div>
+    <div class="code-block">
+<span class="cm"># Backend (.env)</span>
+<span class="kw">DATABASE_URL</span>=<span class="st">postgresql://user:pass@host:5432/buildco_db</span>
+<span class="kw">JWT_SECRET</span>=<span class="st">your-very-long-random-secret-here</span>
+<span class="kw">JWT_EXPIRES_IN</span>=<span class="st">15m</span>
+<span class="kw">SENDGRID_API_KEY</span>=<span class="st">SG.xxxxxxxxxxxxxxxx</span>
+<span class="kw">S3_BUCKET_NAME</span>=<span class="st">buildco-attachments</span>
+<span class="kw">S3_REGION</span>=<span class="st">ap-southeast-1</span>
+<span class="kw">APP_URL</span>=<span class="st">https://procurement.buildco.com</span>
+
+<span class="cm"># Frontend (.env)</span>
+<span class="kw">VITE_API_URL</span>=<span class="st">https://api.buildco.com</span>
+<span class="kw">VITE_APP_NAME</span>=<span class="st">BuildCo Procurement</span>
+    </div>
+  </div>
+
+  <!-- CI/CD -->
+  <div class="card" style="padding:18px 20px;margin-bottom:18px;">
+    <div class="card-title" style="margin-bottom:12px;">🔄 CI/CD Pipeline (GitHub Actions)</div>
+    <div class="code-block">
+<span class="cm"># .github/workflows/deploy.yml</span>
+<span class="kw">on</span>: push:
+  branches: [<span class="st">main</span>]
+
+<span class="kw">jobs</span>:
+  <span class="fn">test</span>: <span class="cm"># Run tests before deploy</span>
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: <span class="st">npm install && npm test</span>
+
+  <span class="fn">deploy-api</span>: <span class="cm"># Deploy to Railway</span>
+    needs: test
+    steps:
+      - run: <span class="st">railway deploy --service api</span>
+
+  <span class="fn">deploy-frontend</span>: <span class="cm"># Deploy to Vercel</span>
+    needs: test
+    steps:
+      - run: <span class="st">vercel --prod</span>
+    </div>
+  </div>
+
+  <!-- Security Checklist -->
+  <div class="card" style="padding:18px 20px;">
+    <div class="card-title" style="margin-bottom:12px;">🔒 Pre-Launch Security Checklist</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      ${[
+        ['✅','HTTPS enforced on all endpoints'],
+        ['✅','JWT tokens stored in httpOnly cookies'],
+        ['✅','SQL injection prevention via parameterized queries'],
+        ['✅','Vendor tokens are one-use, expiring, and UUID v4'],
+        ['✅','File uploads: whitelist PDF/JPG/PNG, max 10MB'],
+        ['✅','Rate limiting on login and vendor form endpoints'],
+        ['✅','Role-based access enforced server-side, not just UI'],
+        ['✅','Database backups enabled (daily minimum)'],
+        ['✅','Environment variables never committed to git'],
+        ['✅','Admin panel behind VPN or IP allowlist'],
+      ].map(([icon,text])=>`
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#334155;padding:7px 10px;background:var(--green-light);border-radius:7px;">
+          <span>${icon}</span> ${text}
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+</script>
+</body>
+</html>
